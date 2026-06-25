@@ -56,8 +56,13 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
   const [testingId, setTestingId] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, TestResult>>({});
 
-  // Seed the draft from the store whenever the modal opens.
-  useEffect(() => {
+  // Seed the draft from the store whenever the modal opens. Adjusting state
+  // during render (the documented "reset when a prop changes" pattern) avoids
+  // the cascading renders a setState-in-effect would cause. prevOpen starts
+  // false so a modal mounted already-open also seeds on its first render.
+  const [prevOpen, setPrevOpen] = useState(false);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setDraftProviders(providers.map((p) => ({ ...p })));
       setDraftActive(activeProviderId);
@@ -65,8 +70,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
       setShowKey(false);
       setResults({});
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }
 
   // Escape closes.
   useEffect(() => {
@@ -264,7 +268,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
 
               {active.mode === "proxy" && (
                 <p className="font-caption mt-1 text-[11px] text-fg-muted">
-                  Cloud proxy uses Folio's server key — no configuration needed.
+                  Cloud proxy uses Folio&apos;s server key — no configuration needed.
                 </p>
               )}
 

@@ -33,6 +33,14 @@ async function collect(gen: AsyncGenerator<string>): Promise<string[]> {
   return out;
 }
 
+/** Drain a generator to completion without binding its (unused) values. */
+async function drain(gen: AsyncGenerator<string>): Promise<void> {
+  for (;;) {
+    const { done } = await gen.next();
+    if (done) break;
+  }
+}
+
 // ── buildRequest: all 6 mode × dialect cells ──────────────────────────────
 describe("buildRequest", () => {
   it("proxy/anthropic → /api/ai, no auth header, body = {messages, system}", () => {
@@ -249,22 +257,14 @@ describe("streamAI", () => {
   it("throws with the status code when the response is not ok", async () => {
     fetchMock.mockResolvedValue(new Response("nope", { status: 500 }));
     await expect(
-      (async () => {
-        for await (const _ of streamAI(msgs, "", provider({ mode: "byok", dialect: "anthropic" }), "k")) {
-          // drain
-        }
-      })(),
+      drain(streamAI(msgs, "", provider({ mode: "byok", dialect: "anthropic" }), "k")),
     ).rejects.toThrow(/500/);
   });
 
   it("throws when the response body is missing", async () => {
     fetchMock.mockResolvedValue(new Response(null, { status: 200 }));
     await expect(
-      (async () => {
-        for await (const _ of streamAI(msgs, "", provider({ mode: "byok", dialect: "anthropic" }), "k")) {
-          // drain
-        }
-      })(),
+      drain(streamAI(msgs, "", provider({ mode: "byok", dialect: "anthropic" }), "k")),
     ).rejects.toThrow(/AI request failed/);
   });
 });

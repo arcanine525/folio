@@ -132,9 +132,9 @@
 - [x] `P2.6.5` Cancel pending timer on unmount or when `activeFileId` changes
 
 ### 2.7 — Storage quota check
-- [ ] `P2.7.1` Call `navigator.storage.estimate()` on app startup and after each `writeFile`
-- [ ] `P2.7.2` If `usage / quota > 0.8`, show warning banner: "Storage 80%+ full. Export vault to free space."
-- [ ] `P2.7.3` Warning banner: `#FEF2F2` bg, Geist 13px, dismissable
+- [x] `P2.7.1` Call `navigator.storage.estimate()` on app startup and after each `writeFile`
+- [x] `P2.7.2` If `usage / quota > 0.8`, show warning banner: "Storage 80%+ full. Export vault to free space."
+- [x] `P2.7.3` Warning banner: `#FEF2F2` bg, Geist 13px, dismissable
 
 ### 2.8 — Sidebar wiring (`components/layout/Sidebar.tsx`)
 - [ ] `P2.8.1` Render `<FileTree>` in top section, full height with `overflow-y: auto`

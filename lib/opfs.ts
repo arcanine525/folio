@@ -19,6 +19,27 @@ async function getRoot(): Promise<FileSystemDirectoryHandle> {
   return rootHandle;
 }
 
+// ── Write-event pub/sub ────────────────────────────────────────────────────
+// Lets observers (e.g. the storage-quota hook) react after a file is written,
+// without them having to poll or reach into the write path.
+type WriteListener = () => void;
+const writeListeners = new Set<WriteListener>();
+
+/**
+ * Subscribe to post-write notifications. Returns an unsubscribe function.
+ * Notified after every successful {@link writeFile}.
+ */
+export function onOpfsWrite(listener: WriteListener): () => void {
+  writeListeners.add(listener);
+  return () => {
+    writeListeners.delete(listener);
+  };
+}
+
+function notifyWrite(): void {
+  writeListeners.forEach((listener) => listener());
+}
+
 /** Used by tests to reset the cached root between cases. Not exported in app builds. */
 export async function __resetRootForTests(): Promise<void> {
   rootHandle = null;
@@ -99,6 +120,7 @@ export async function writeFile(
   } finally {
     await writable.close();
   }
+  notifyWrite();
 }
 
 /** Delete a single file at `path`. Folders should use {@link deleteFolder}. */

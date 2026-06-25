@@ -172,12 +172,12 @@
 - [x] `P3.2.9` Add a hard monthly spend cap + minimal auth in front of the route (see review notes)
 
 ### 3.3 — Whisper proxy (`app/api/transcribe/route.ts`)
-- [ ] `P3.3.1` Export `POST` handler
-- [ ] `P3.3.2` Parse `multipart/form-data`, extract `file` field
-- [ ] `P3.3.3` Validate MIME type — allow: `audio/mpeg`, `audio/wav`, `audio/mp4`, `audio/m4a`, `audio/webm`, `audio/ogg`; return `415` otherwise
-- [ ] `P3.3.4` Validate file size < 25MB; return `413` otherwise
-- [ ] `P3.3.5` Forward `FormData` to `https://api.openai.com/v1/audio/transcriptions` with `model: whisper-1`
-- [ ] `P3.3.6` Return `{ text: string }` from Whisper response
+- [x] `P3.3.1` Export `POST` handler
+- [x] `P3.3.2` Parse `multipart/form-data`, extract `file` field
+- [x] `P3.3.3` Validate MIME type — allow: `audio/mpeg`, `audio/wav`, `audio/mp4`, `audio/m4a`, `audio/webm`, `audio/ogg`; return `415` otherwise
+- [x] `P3.3.4` Validate file size < 25MB; return `413` otherwise
+- [x] `P3.3.5` Forward `FormData` to `https://api.openai.com/v1/audio/transcriptions` with `model: whisper-1`
+- [x] `P3.3.6` Return `{ text: string }` from Whisper response
 
 ### 3.4 — Dual-dialect stream consumer (`lib/ai.ts`)
 - [ ] `P3.4.1` `streamAI(messages, system, provider, apiKey?, signal?)` as an `async function*` generator

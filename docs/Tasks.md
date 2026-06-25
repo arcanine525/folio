@@ -206,11 +206,11 @@
 - [ ] `P3.5.6` `clearHistory()` — reset `history` to `[]`
 
 ### 3.6 — Scope context builder (`lib/ai.ts` or `hooks/useAI.ts`)
-- [ ] `P3.6.1` `buildContext(scope, activeFileId): Promise<string>`
-- [ ] `P3.6.2` `'file'` → `readFile(activeFileId)`
-- [ ] `P3.6.3` `'folder'` → list all `.md` files in the active file's parent folder, read each, join with `\n\n---\n\n# {filename}\n\n`
-- [ ] `P3.6.4` `'all'` → walk entire OPFS tree, read all `.md` files, same join format
-- [ ] `P3.6.5` Estimate token count (chars / 4); if > 100 000, prompt user with a warning modal before proceeding
+- [x] `P3.6.1` `buildContext(scope, activeFileId): Promise<string>`
+- [x] `P3.6.2` `'file'` → `readFile(activeFileId)`
+- [x] `P3.6.3` `'folder'` → list all `.md` files in the active file's parent folder, read each, join with `\n\n---\n\n# {filename}\n\n`
+- [x] `P3.6.4` `'all'` → walk entire OPFS tree, read all `.md` files, same join format
+- [x] `P3.6.5` Estimate token count (chars / 4); if > 100 000, prompt user with a warning modal before proceeding
 
 ### 3.7 — Prompt templates (`lib/prompts.ts`)
 - [x] `P3.7.1` Define `SYSTEM_BASE` string

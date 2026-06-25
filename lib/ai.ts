@@ -14,7 +14,8 @@
 //
 // See docs/ai-provider-design.md §2–§3 and docs/plan.md §3.4.
 
-import type { AIMessage, ApiDialect, ProviderConfig } from "@/types";
+import type { AIMessage, AIScope, ApiDialect, FSNode, ProviderConfig } from "@/types";
+import * as opfs from "@/lib/opfs";
 
 /** Anthropic Messages API version header value. */
 export const ANTHROPIC_VERSION = "2023-06-01";
@@ -177,4 +178,105 @@ export async function* streamAI(
   }
 
   yield* parseStream(provider.dialect, res.body.getReader());
+}
+
+// ── Scope context builder (P3.6) ───────────────────────────────────────────
+// Gathers document text for a scope (file / folder / all) so the AI operates on
+// the right amount of surrounding context. Kept in lib/ai.ts alongside the
+// streaming engine; both are pure-ish libs over OPFS / fetch.
+
+/** Above this many estimated tokens, callers should warn the user before sending. */
+export const CONTEXT_TOKEN_WARNING = 100_000;
+
+export interface BuiltContext {
+  /** Joined document text fed to the model. */
+  content: string;
+  /** Rough token estimate (chars / 4). */
+  tokens: number;
+  /** Number of files actually included. */
+  fileCount: number;
+  /** True when `tokens` exceeds {@link CONTEXT_TOKEN_WARNING}. */
+  overLimit: boolean;
+}
+
+/** Rough token estimate ≈ chars / 4, matching the proxy payload guard. */
+export function estimateContextTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
+/** Flatten a tree into a sorted list of `.md` file paths (depth-first). */
+function collectMdPaths(nodes: FSNode[]): string[] {
+  const out: string[] = [];
+  for (const node of nodes) {
+    if (node.type === "folder") {
+      out.push(...collectMdPaths(node.children ?? []));
+    } else if (node.name.endsWith(".md")) {
+      out.push(node.path);
+    }
+  }
+  return out;
+}
+
+/** Parent folder path of a file path ("" for a root-level file). */
+function parentDir(path: string): string {
+  const idx = path.lastIndexOf("/");
+  return idx === -1 ? "" : path.slice(0, idx);
+}
+
+/** Last path segment (the file name). */
+function basename(path: string): string {
+  const idx = path.lastIndexOf("/");
+  return idx === -1 ? path : path.slice(idx + 1);
+}
+
+/** True if `path` lives under directory `dir` (a subtree match). */
+function isUnder(path: string, dir: string): boolean {
+  return dir === "" ? !path.includes("/") : path.startsWith(`${dir}/`);
+}
+
+/** Read a file, returning "" on any error so one missing file never aborts the build. */
+async function safeRead(path: string): Promise<string> {
+  try {
+    return await opfs.readFile(path);
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Build the document context for a scope.
+ *
+ * - `file`   → the active file's raw contents (no heading/separator).
+ * - `folder` → every `.md` file under the active file's parent folder. If the
+ *   active file is at the root, only other root-level files are included (so
+ *   `folder` never collapses to the whole vault).
+ * - `all`    → every `.md` file in the vault.
+ *
+ * For multi-file scopes each file is prefixed with a `# filename` heading and
+ * blocks are separated by `---`. Returns a token estimate + an `overLimit` flag
+ * so the caller can warn the user before an oversized send (P3.6.5).
+ */
+export async function buildContext(
+  scope: AIScope,
+  activeFileId: string | null,
+): Promise<BuiltContext> {
+  if (scope === "file") {
+    const content = activeFileId ? await safeRead(activeFileId) : "";
+    const tokens = estimateContextTokens(content);
+    return { content, tokens, fileCount: content ? 1 : 0, overLimit: tokens > CONTEXT_TOKEN_WARNING };
+  }
+
+  const paths = collectMdPaths(await opfs.listTree()).filter((p) =>
+    scope === "all" ? true : activeFileId ? isUnder(p, parentDir(activeFileId)) : false,
+  );
+
+  const parts: string[] = [];
+  for (const path of paths) {
+    const body = await safeRead(path);
+    if (body) parts.push(`# ${basename(path)}\n\n${body}`);
+  }
+
+  const content = parts.join("\n\n---\n\n");
+  const tokens = estimateContextTokens(content);
+  return { content, tokens, fileCount: parts.length, overLimit: tokens > CONTEXT_TOKEN_WARNING };
 }

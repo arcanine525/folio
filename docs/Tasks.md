@@ -84,63 +84,63 @@
 > Goal: Files survive page refresh. File tree mirrors OPFS. Autosave on every edit.
 
 ### 2.1 — OPFS primitives (`lib/opfs.ts`)
-- [ ] `P2.1.1` Cache root handle: call `navigator.storage.getDirectory()` once, store in module-level variable
-- [ ] `P2.1.2` Implement `readFile(path: string): Promise<string>` — resolve path parts, `getFile()`, `.text()`
-- [ ] `P2.1.3` Implement `writeFile(path: string, content: string): Promise<void>` — resolve dirs with `{ create: true }`, `createWritable()`, write, close
-- [ ] `P2.1.4` Implement `deleteFile(path: string): Promise<void>`
-- [ ] `P2.1.5` Implement `createFolder(path: string): Promise<void>` — resolve all path parts with `{ create: true }`
-- [ ] `P2.1.6` Implement `deleteFolder(path: string): Promise<void>` — `removeEntry(name, { recursive: true })`
-- [ ] `P2.1.7` Implement `renameEntry(oldPath: string, newName: string): Promise<string>` — copy content to new path, delete old path, return new path
-- [ ] `P2.1.8` Implement `listTree(dir?, prefix?): Promise<FSNode[]>` — recurse via `dir.entries()`, sort folders first then alpha
-- [ ] `P2.1.9` Export all functions from `lib/opfs.ts`
+- [x] `P2.1.1` Cache root handle: call `navigator.storage.getDirectory()` once, store in module-level variable
+- [x] `P2.1.2` Implement `readFile(path: string): Promise<string>` — resolve path parts, `getFile()`, `.text()`
+- [x] `P2.1.3` Implement `writeFile(path: string, content: string): Promise<void>` — resolve dirs with `{ create: true }`, `createWritable()`, write, close
+- [x] `P2.1.4` Implement `deleteFile(path: string): Promise<void>`
+- [x] `P2.1.5` Implement `createFolder(path: string): Promise<void>` — resolve all path parts with `{ create: true }`
+- [x] `P2.1.6` Implement `deleteFolder(path: string): Promise<void>` — `removeEntry(name, { recursive: true })`
+- [x] `P2.1.7` Implement `renameEntry(oldPath: string, newName: string): Promise<string>` — copy content to new path, delete old path, return new path
+- [x] `P2.1.8` Implement `listTree(dir?, prefix?): Promise<FSNode[]>` — recurse via `dir.entries()`, sort folders first then alpha
+- [x] `P2.1.9` Export all functions from `lib/opfs.ts`
 
 ### 2.2 — File tree hook (`hooks/useFileTree.ts`)
-- [ ] `P2.2.1` `refresh()` — call `listTree()`, write result to Zustand `tree`, set `loading: false`
-- [ ] `P2.2.2` Call `refresh()` once on mount (triggers initial OPFS scan)
-- [ ] `P2.2.3` `createFile(path)` — `writeFile(path, defaultContent)` → `refresh()` → return path
-- [ ] `P2.2.4` `createFolder(path)` — `opfsCreateFolder(path)` → `refresh()`
-- [ ] `P2.2.5` `deleteNode(node)` — branch on `node.type`, call file or folder delete → `refresh()`
-- [ ] `P2.2.6` `renameNode(node, newName)` — `renameEntry()` → `refresh()` → return new path
-- [ ] `P2.2.7` Return `{ tree, loading, refresh, createFile, createFolder, deleteNode, renameNode }`
+- [x] `P2.2.1` `refresh()` — call `listTree()`, write result to Zustand `tree`, set `loading: false`
+- [x] `P2.2.2` Call `refresh()` once on mount (triggers initial OPFS scan)
+- [x] `P2.2.3` `createFile(path)` — `writeFile(path, defaultContent)` → `refresh()` → return path
+- [x] `P2.2.4` `createFolder(path)` — `opfsCreateFolder(path)` → `refresh()`
+- [x] `P2.2.5` `deleteNode(node)` — branch on `node.type`, call file or folder delete → `refresh()`
+- [x] `P2.2.6` `renameNode(node, newName)` — `renameEntry()` → `refresh()` → return new path
+- [x] `P2.2.7` Return `{ tree, loading, refresh, createFile, createFolder, deleteNode, renameNode }`
 
 ### 2.3 — FileTree component (`components/filetree/FileTree.tsx`)
-- [ ] `P2.3.1` Render list of `FSNode[]` recursively — folders rendered before files at each level
-- [ ] `P2.3.2` Pass `depth` prop down for left-padding calculation (`depth * 14px`)
-- [ ] `P2.3.3` Show folder expand/collapse chevron; toggle on click (local component state)
-- [ ] `P2.3.4` Render `FileTreeItem` for each node
+- [x] `P2.3.1` Render list of `FSNode[]` recursively — folders rendered before files at each level
+- [x] `P2.3.2` Pass `depth` prop down for left-padding calculation (`depth * 14px`)
+- [x] `P2.3.3` Show folder expand/collapse chevron; toggle on click (local component state)
+- [x] `P2.3.4` Render `FileTreeItem` for each node
 
 ### 2.4 — FileTreeItem component (`components/filetree/FileTreeItem.tsx`)
-- [ ] `P2.4.1` Left-click → call `setActiveFile(node.id)`, read file content from OPFS, call `setContent()`
-- [ ] `P2.4.2` Active file: `#EBF0FF` background, 3px `#0066FF` left bar, Inter 600 label
-- [ ] `P2.4.3` Non-active file: Geist 12px `#666666` label
-- [ ] `P2.4.4` Folder: Inter 500 12px `#1A1A1A` label
-- [ ] `P2.4.5` Right-click → show context menu: Rename · Delete · New file here · New folder here
-- [ ] `P2.4.6` Show `●` dot (Funnel Sans, `#0066FF`) on rows with unsaved changes (dirty flag)
-- [ ] `P2.4.7` `ContextMenu` — positioned absolutely, closes on outside click or Escape
+- [x] `P2.4.1` Left-click → call `setActiveFile(node.id)`, read file content from OPFS, call `setContent()`
+- [x] `P2.4.2` Active file: `#EBF0FF` background, 3px `#0066FF` left bar, Inter 600 label
+- [x] `P2.4.3` Non-active file: Geist 12px `#666666` label
+- [x] `P2.4.4` Folder: Inter 500 12px `#1A1A1A` label
+- [x] `P2.4.5` Right-click → show context menu: Rename · Delete · New file here · New folder here
+- [x] `P2.4.6` Show `●` dot (Funnel Sans, `#0066FF`) on rows with unsaved changes (dirty flag)
+- [x] `P2.4.7` `ContextMenu` — positioned absolutely, closes on outside click or Escape
 
 ### 2.5 — NewItemInput component (`components/filetree/NewItemInput.tsx`)
-- [ ] `P2.5.1` Render inline text `<input>` in place of the file/folder row
-- [ ] `P2.5.2` Commit on `Enter` → call `createFile` or `createFolder`, open new file
-- [ ] `P2.5.3` Cancel on `Escape` → remove input without creating anything
-- [ ] `P2.5.4` Auto-focus input on mount
+- [x] `P2.5.1` Render inline text `<input>` in place of the file/folder row
+- [x] `P2.5.2` Commit on `Enter` → call `createFile` or `createFolder`, open new file
+- [x] `P2.5.3` Cancel on `Escape` → remove input without creating anything
+- [x] `P2.5.4` Auto-focus input on mount
 
 ### 2.6 — Autosave (`hooks/useEditor.ts`)
-- [ ] `P2.6.1` Load file content from OPFS when `activeFileId` changes; set both `content` and `savedContent`
-- [ ] `P2.6.2` On `handleChange(newContent)`: update `content` in Zustand, start 800ms debounce timer
-- [ ] `P2.6.3` On debounce fire: `writeFile(activeFileId, newContent)` → update `savedContent` → clear `saving` flag
-- [ ] `P2.6.4` Expose `isDirty` = `content !== savedContent` and `saving` boolean
-- [ ] `P2.6.5` Cancel pending timer on unmount or when `activeFileId` changes
+- [x] `P2.6.1` Load file content from OPFS when `activeFileId` changes; set both `content` and `savedContent`
+- [x] `P2.6.2` On `handleChange(newContent)`: update `content` in Zustand, start 800ms debounce timer
+- [x] `P2.6.3` On debounce fire: `writeFile(activeFileId, newContent)` → update `savedContent` → clear `saving` flag
+- [x] `P2.6.4` Expose `isDirty` = `content !== savedContent` and `saving` boolean
+- [x] `P2.6.5` Cancel pending timer on unmount or when `activeFileId` changes
 
 ### 2.7 — Storage quota check
-- [ ] `P2.7.1` Call `navigator.storage.estimate()` on app startup and after each `writeFile`
-- [ ] `P2.7.2` If `usage / quota > 0.8`, show warning banner: "Storage 80%+ full. Export vault to free space."
-- [ ] `P2.7.3` Warning banner: `#FEF2F2` bg, Geist 13px, dismissable
+- [x] `P2.7.1` Call `navigator.storage.estimate()` on app startup and after each `writeFile`
+- [x] `P2.7.2` If `usage / quota > 0.8`, show warning banner: "Storage 80%+ full. Export vault to free space."
+- [x] `P2.7.3` Warning banner: `#FEF2F2` bg, Geist 13px, dismissable
 
 ### 2.8 — Sidebar wiring (`components/layout/Sidebar.tsx`)
-- [ ] `P2.8.1` Render `<FileTree>` in top section, full height with `overflow-y: auto`
-- [ ] `P2.8.2` Render footer section: "Upload audio / transcript" button (Funnel Sans 12px, `#666666`, border `#E5E5E5`)
-- [ ] `P2.8.3` Render sidebar header: "FILES" label (Funnel Sans 10px 600 `#999999`) + `+` new file button
-- [ ] `P2.8.4` Apply box shadow: `0 1px 4px #00000008` on sidebar right edge separator
+- [x] `P2.8.1` Render `<FileTree>` in top section, full height with `overflow-y: auto`
+- [x] `P2.8.2` Render footer section: "Upload audio / transcript" button (Funnel Sans 12px, `#666666`, border `#E5E5E5`)
+- [x] `P2.8.3` Render sidebar header: "FILES" label (Funnel Sans 10px 600 `#999999`) + `+` new file button
+- [x] `P2.8.4` Apply box shadow: `0 1px 4px #00000008` on sidebar right edge separator
 
 **✓ Phase 2 done when:** Create a file, type content, refresh the page — file tree and content are exactly as left.
 
@@ -467,7 +467,7 @@
 | Phase | Tasks | Status |
 |---|---|---|
 | 1 — Skeleton + editor | 1.1–1.8 | ✅ Done |
-| 2 — OPFS + file tree | 2.1–2.8 | ⬜ Not started |
+| 2 — OPFS + file tree | 2.1–2.8 | ✅ Done |
 | 3 — AI proxy + streaming | 3.1–3.10 | ⬜ Not started |
 | 4 — Search + metadata + cache | 4.1–4.7 | ⬜ Not started |
 | 5 — Audio + transcription | 5.1–5.4 | ⬜ Not started |

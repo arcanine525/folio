@@ -180,16 +180,16 @@
 - [x] `P3.3.6` Return `{ text: string }` from Whisper response
 
 ### 3.4 — Dual-dialect stream consumer (`lib/ai.ts`)
-- [ ] `P3.4.1` `streamAI(messages, system, provider, apiKey?, signal?)` as an `async function*` generator
-- [ ] `P3.4.2` `buildRequest(provider, apiKey, messages, system)` → `{ url, headers, body }`, branch on `mode` then `dialect`
-- [ ] `P3.4.3` `proxy` mode → POST `/api/ai` with `{ messages, system }` (key stays server-side, no key in browser)
-- [ ] `P3.4.4` `anthropic` dialect (byok/local) → `${baseUrl}/v1/messages`; headers `x-api-key`, `anthropic-version`, `anthropic-dangerous-direct-browser-access: true`; body carries top-level `system`
-- [ ] `P3.4.5` `openai` dialect (byok/local) → `${baseUrl}/chat/completions`; header `authorization: Bearer`; fold `system` into a leading system message
-- [ ] `P3.4.6` Omit the auth header for keyless `local` providers
-- [ ] `P3.4.7` `parseStream(dialect, reader)` — shared SSE buffering (split on `\n`, keep partial last line, skip malformed JSON, stop on `[DONE]`)
-- [ ] `P3.4.8` Per-dialect delta extractor: anthropic `content_block_delta → delta.text`; openai `choices[0].delta.content`
-- [ ] `P3.4.9` Throw on non-ok / missing body with status code in message
-- [ ] `P3.4.10` Unit tests: all 6 `mode × dialect` cells produce correct url/headers/body; parser handles both SSE fixtures, split buffers, malformed chunks
+- [x] `P3.4.1` `streamAI(messages, system, provider, apiKey?, signal?)` as an `async function*` generator
+- [x] `P3.4.2` `buildRequest(provider, apiKey, messages, system)` → `{ url, headers, body }`, branch on `mode` then `dialect`
+- [x] `P3.4.3` `proxy` mode → POST `/api/ai` with `{ messages, system }` (key stays server-side, no key in browser)
+- [x] `P3.4.4` `anthropic` dialect (byok/local) → `${baseUrl}/v1/messages`; headers `x-api-key`, `anthropic-version`, `anthropic-dangerous-direct-browser-access: true`; body carries top-level `system`
+- [x] `P3.4.5` `openai` dialect (byok/local) → `${baseUrl}/chat/completions`; header `authorization: Bearer`; fold `system` into a leading system message
+- [x] `P3.4.6` Omit the auth header for keyless `local` providers
+- [x] `P3.4.7` `parseStream(dialect, reader)` — shared SSE buffering (split on `\n`, keep partial last line, skip malformed JSON, stop on `[DONE]`)
+- [x] `P3.4.8` Per-dialect delta extractor: anthropic `content_block_delta → delta.text`; openai `choices[0].delta.content`
+- [x] `P3.4.9` Throw on non-ok / missing body with status code in message
+- [x] `P3.4.10` Unit tests: all 6 `mode × dialect` cells produce correct url/headers/body; parser handles both SSE fixtures, split buffers, malformed chunks
 
 ### 3.5 — AI hook (`hooks/useAI.ts`)
 - [ ] `P3.5.1` State: `output: string`, `loading: boolean`, `error: string | null`, `history: AIMessage[]`

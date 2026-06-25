@@ -39,9 +39,12 @@ export function SearchModal({ results, loading, onSearch }: SearchModalProps) {
   // Seed the query + focus the input whenever the modal opens.
   useEffect(() => {
     if (!open) return;
+    // Syncing external open/initialQuery state into local editable state on open.
+    /* eslint-disable react-hooks/set-state-in-effect */
     setQuery(initialQuery);
     setTab("All");
     setActiveIndex(0);
+    /* eslint-enable react-hooks/set-state-in-effect */
     const id = setTimeout(() => inputRef.current?.focus(), 0);
     return () => clearTimeout(id);
   }, [open, initialQuery]);
@@ -57,6 +60,7 @@ export function SearchModal({ results, loading, onSearch }: SearchModalProps) {
 
   // Keep the active index in range as the result set changes.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveIndex((i) => (filtered.length === 0 ? 0 : Math.min(i, filtered.length - 1)));
   }, [filtered.length]);
 

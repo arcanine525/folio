@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as opfs from "@/lib/opfs";
-import { bridgeRemove, bridgeUpdate, setSearchPort } from "@/lib/searchBridge";
+import { setSearchPort } from "@/lib/searchBridge";
 import type {
   IndexableDoc,
   SearchFilter,

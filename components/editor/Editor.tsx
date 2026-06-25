@@ -83,7 +83,11 @@ export function Editor({ value, onChange, viewRef }: EditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const cmViewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  // Keep the ref current so the mount-once effect always invokes the latest
+  // onChange (writing it during render violates react-hooks/refs).
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   // Mount once.
   useEffect(() => {

@@ -24,7 +24,7 @@ class FakeWorker {
   onmessage: ((e: MessageEvent<WorkerOutbound>) => void) | null = null;
   indexed = false;
 
-  constructor(_url: URL, _opts?: { type: string }) {
+  constructor() {
     created.push(this);
   }
 

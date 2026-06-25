@@ -213,10 +213,10 @@
 - [ ] `P3.6.5` Estimate token count (chars / 4); if > 100 000, prompt user with a warning modal before proceeding
 
 ### 3.7 — Prompt templates (`lib/prompts.ts`)
-- [ ] `P3.7.1` Define `SYSTEM_BASE` string
-- [ ] `P3.7.2` Define `PROMPTS` map with 6 keys: `'Action items'`, `'Decisions'`, `'Questions'`, `'Timeline'`, `'Summary'`, `'Next steps'`
-- [ ] `P3.7.3` Each value is `SYSTEM_BASE` + task-specific extraction instruction
-- [ ] `P3.7.4` Export both `SYSTEM_BASE` and `PROMPTS`
+- [x] `P3.7.1` Define `SYSTEM_BASE` string
+- [x] `P3.7.2` Define `PROMPTS` map with 6 keys: `'Action items'`, `'Decisions'`, `'Questions'`, `'Timeline'`, `'Summary'`, `'Next steps'`
+- [x] `P3.7.3` Each value is `SYSTEM_BASE` + task-specific extraction instruction
+- [x] `P3.7.4` Export both `SYSTEM_BASE` and `PROMPTS`
 
 ### 3.8 — ScopeSelector component (`components/ai/ScopeSelector.tsx`)
 - [ ] `P3.8.1` Render 3 pill buttons: File / Folder / All

@@ -219,11 +219,11 @@
 - [x] `P3.7.4` Export both `SYSTEM_BASE` and `PROMPTS`
 
 ### 3.8 — ScopeSelector component (`components/ai/ScopeSelector.tsx`)
-- [ ] `P3.8.1` Render 3 pill buttons: File / Folder / All
-- [ ] `P3.8.2` Active: `#0066FF` bg, white Funnel Sans 11px 600 text
-- [ ] `P3.8.3` Inactive: transparent bg, Funnel Sans 11px `#666666` text
-- [ ] `P3.8.4` `4px` border radius on each pill
-- [ ] `P3.8.5` Call `onChange(scope)` on click
+- [x] `P3.8.1` Render 3 pill buttons: File / Folder / All
+- [x] `P3.8.2` Active: `#0066FF` bg, white Funnel Sans 11px 600 text
+- [x] `P3.8.3` Inactive: transparent bg, Funnel Sans 11px `#666666` text
+- [x] `P3.8.4` `4px` border radius on each pill
+- [x] `P3.8.5` Call `onChange(scope)` on click
 
 ### 3.9 — QuickActions component (`components/ai/QuickActions.tsx`)
 - [ ] `P3.9.1` Render horizontal scrollable chip row (no wrapping)

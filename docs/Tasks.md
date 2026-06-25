@@ -277,11 +277,11 @@
 - [x] `P4.1.5` Export typed helpers: `getMeta(path)`, `setMeta(meta)`, `getCache(key)`, `setCache(key, response)`, `deleteCache(key)`, `getAllMeta()`
 
 ### 4.2 — File metadata computation
-- [ ] `P4.2.1` In `hooks/useEditor.ts`: after each successful `writeFile`, compute `{ wordCount, readingTimeSeconds: ceil(words/4), lastModified: Date.now(), tags }`
-- [ ] `P4.2.2` Extract `tags` from frontmatter via `gray-matter(content).data.tags ?? []`
-- [ ] `P4.2.3` Call `setMeta({ path, wordCount, readingTimeSeconds, lastModified, tags })` to persist
-- [ ] `P4.2.4` Expose `wordCount` and `readingTimeSeconds` from `useEditor` hook
-- [ ] `P4.2.5` Update `EditorToolbar` meta row to read live values from hook
+- [x] `P4.2.1` In `hooks/useEditor.ts`: after each successful `writeFile`, compute `{ wordCount, readingTimeSeconds: ceil(words/4), lastModified: Date.now(), tags }`
+- [x] `P4.2.2` Extract `tags` from frontmatter via `gray-matter(content).data.tags ?? []`
+- [x] `P4.2.3` Call `setMeta({ path, wordCount, readingTimeSeconds, lastModified, tags })` to persist
+- [x] `P4.2.4` Expose `wordCount` and `readingTimeSeconds` from `useEditor` hook
+- [x] `P4.2.5` Update `EditorToolbar` meta row to read live values from hook
 
 ### 4.3 — Frontmatter tag pills (`components/editor/EditorToolbar.tsx`)
 - [ ] `P4.3.1` Parse `tags` array from `gray-matter` on file load

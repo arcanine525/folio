@@ -161,15 +161,15 @@
 - [x] `P3.1.7` Unit tests: round-trip through localStorage; secrets/configs under separate keys; `getActive` resolves
 
 ### 3.2 — Claude proxy (`app/api/ai/route.ts`) — used by `proxy` mode only
-- [ ] `P3.2.1` Export `POST` handler as a Next.js Route Handler
-- [ ] `P3.2.2` Rate limiter via a **durable store** (Upstash/Vercel KV — not an in-memory `Map`, which resets per serverless invocation), 10 req/min, `429` when exceeded
-- [ ] `P3.2.3` Validate payload: estimate tokens as `JSON.stringify(body.messages).length / 4`; return `413` if > 150 000
-- [ ] `P3.2.4` Read `ANTHROPIC_API_KEY` from `process.env` — never expose it in response or logs
-- [ ] `P3.2.5` Forward request to `https://api.anthropic.com/v1/messages` with `stream: true`, model `claude-sonnet-4-6`, `max_tokens: 4096`
-- [ ] `P3.2.6` Pipe `upstream.body` straight to response — no buffering
-- [ ] `P3.2.7` Set headers: `content-type: text/event-stream`, `cache-control: no-cache`, `x-accel-buffering: no`
-- [ ] `P3.2.8` Return `{ status: upstream.status }` error passthrough if upstream is not ok
-- [ ] `P3.2.9` Add a hard monthly spend cap + minimal auth in front of the route (see review notes)
+- [x] `P3.2.1` Export `POST` handler as a Next.js Route Handler
+- [x] `P3.2.2` Rate limiter via a **durable store** (Upstash/Vercel KV — not an in-memory `Map`, which resets per serverless invocation), 10 req/min, `429` when exceeded
+- [x] `P3.2.3` Validate payload: estimate tokens as `JSON.stringify(body.messages).length / 4`; return `413` if > 150 000
+- [x] `P3.2.4` Read `ANTHROPIC_API_KEY` from `process.env` — never expose it in response or logs
+- [x] `P3.2.5` Forward request to `https://api.anthropic.com/v1/messages` with `stream: true`, model `claude-sonnet-4-6`, `max_tokens: 4096`
+- [x] `P3.2.6` Pipe `upstream.body` straight to response — no buffering
+- [x] `P3.2.7` Set headers: `content-type: text/event-stream`, `cache-control: no-cache`, `x-accel-buffering: no`
+- [x] `P3.2.8` Return `{ status: upstream.status }` error passthrough if upstream is not ok
+- [x] `P3.2.9` Add a hard monthly spend cap + minimal auth in front of the route (see review notes)
 
 ### 3.3 — Whisper proxy (`app/api/transcribe/route.ts`)
 - [ ] `P3.3.1` Export `POST` handler

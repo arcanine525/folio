@@ -152,13 +152,13 @@
 > **Design:** see `docs/ai-provider-design.md` (two-axis `mode` × `dialect` model).
 
 ### 3.1 — Provider types + settings store (`types/index.ts`, `store/settingsStore.ts`)
-- [ ] `P3.1.1` Add types: `ProviderMode` (`proxy`|`byok`|`local`), `ApiDialect` (`anthropic`|`openai`), `ProviderConfig`, `AISettings`
-- [ ] `P3.1.2` Create `store/settingsStore.ts` — Zustand store: `activeProviderId`, `providers`, `keys`
-- [ ] `P3.1.3` Persist non-secrets to `localStorage` key `folio.ai.settings`; persist `keys` separately to `folio.ai.keys` (SSR-safe, like `appStore`)
-- [ ] `P3.1.4` Seed `DEFAULT_PROVIDERS`: `proxy` (Folio Cloud), `byok-anthropic`, `byok-openai`, `local-ollama`; default `activeProviderId = "proxy"`
-- [ ] `P3.1.5` Implement `setActiveProvider`, `upsertProvider`, `removeProvider`, `setKey`, `clearKey`, `getActive`
-- [ ] `P3.1.6` Custom `local` providers get a uuid id (LM Studio, etc.)
-- [ ] `P3.1.7` Unit tests: round-trip through localStorage; secrets/configs under separate keys; `getActive` resolves
+- [x] `P3.1.1` Add types: `ProviderMode` (`proxy`|`byok`|`local`), `ApiDialect` (`anthropic`|`openai`), `ProviderConfig`, `AISettings`
+- [x] `P3.1.2` Create `store/settingsStore.ts` — Zustand store: `activeProviderId`, `providers`, `keys`
+- [x] `P3.1.3` Persist non-secrets to `localStorage` key `folio.ai.settings`; persist `keys` separately to `folio.ai.keys` (SSR-safe, like `appStore`)
+- [x] `P3.1.4` Seed `DEFAULT_PROVIDERS`: `proxy` (Folio Cloud), `byok-anthropic`, `byok-openai`, `local-ollama`; default `activeProviderId = "proxy"`
+- [x] `P3.1.5` Implement `setActiveProvider`, `upsertProvider`, `removeProvider`, `setKey`, `clearKey`, `getActive`
+- [x] `P3.1.6` Custom `local` providers get a uuid id (LM Studio, etc.)
+- [x] `P3.1.7` Unit tests: round-trip through localStorage; secrets/configs under separate keys; `getActive` resolves
 
 ### 3.2 — Claude proxy (`app/api/ai/route.ts`) — used by `proxy` mode only
 - [ ] `P3.2.1` Export `POST` handler as a Next.js Route Handler
@@ -495,7 +495,7 @@
 |---|---|---|
 | 1 — Skeleton + editor | 1.1–1.8 | ✅ Done |
 | 2 — OPFS + file tree | 2.1–2.8 | ✅ Done |
-| 3 — AI provider layer + streaming | 3.1–3.12 | ⬜ Not started |
+| 3 — AI provider layer + streaming | 3.1–3.12 | 🟡 In progress |
 | 4 — Search + metadata + cache | 4.1–4.7 | ⬜ Not started |
 | 5 — Audio + transcription | 5.1–5.4 | ⬜ Not started |
 | 6 — Export | 6.1–6.3 | ⬜ Not started |

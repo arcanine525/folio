@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as opfs from "@/lib/opfs";
+import { bridgeUpdate } from "@/lib/searchBridge";
 import { setMeta } from "@/lib/indexeddb";
 import { computeMeta, countWords } from "@/lib/metadata";
 import { useAppStore } from "@/store/appStore";
@@ -27,6 +28,12 @@ let autosaveDebounceMs = 800;
 /** Test-only override so the debounce can be made instant or effectively never. */
 export function __setAutosaveDebounceForTests(ms: number): void {
   autosaveDebounceMs = ms;
+}
+
+/** Last path segment (the file name), used for the search-index doc name. */
+function basename(path: string): string {
+  const idx = path.lastIndexOf("/");
+  return idx === -1 ? path : path.slice(idx + 1);
 }
 
 /**
@@ -74,6 +81,8 @@ export function useEditor(): UseEditor {
     } catch {
       /* metadata persistence is non-critical */
     }
+    // P4.5.4: push the new content into the live search index.
+    bridgeUpdate({ path: id, name: basename(id), content: text });
   }, [setSavedContent]);
 
   // Load on activeFileId change; cancel any pending save for the prior file.

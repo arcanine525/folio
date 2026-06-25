@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import * as opfs from "@/lib/opfs";
+import { bridgeRemove } from "@/lib/searchBridge";
 import { useAppStore } from "@/store/appStore";
 import type { FSNode } from "@/types";
 
@@ -65,6 +66,8 @@ export function useFileTree(): UseFileTree {
     async (node: FSNode): Promise<void> => {
       if (node.type === "file") {
         await opfs.deleteFile(node.path);
+        // P4.5.5: drop the deleted file from the live search index.
+        bridgeRemove(node.path);
       } else {
         await opfs.deleteFolder(node.path);
       }

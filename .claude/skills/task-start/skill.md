@@ -22,7 +22,7 @@ Base branch: `develop`.
 
 Accept the task ID passed as the argument to `/task-start`.
 Valid formats: `P<phase>.<section>` for a whole section (e.g. `P2.4`) or
-`P<phase>.<section>.<index>` for a single item (e.g. `P2.4.1`).
+`P<phase>.<section>.<index>` for a single item (e.g. `P2.4.1`) or `P <phase>` for a phase.
 
 If no argument was given, read `Tasks.md`, find the first section that has **any**
 unchecked `- [ ]` item, and use that section ID. Tell the user which ID was
@@ -100,16 +100,13 @@ the plan and re-present. Do not proceed until explicitly confirmed.
 
 ```bash
 git fetch origin develop
-git switch -c feature/folio-<task-id-slug> origin/develop
+git switch -c feature/folio-<task-id-slug> <summary> origin/develop
 ```
 
-Where `<task-id-slug>` is the task ID lowercased with dots replaced by dashes
-(e.g. `P2.4` → `p2-4`, `P3.10` → `p3-10`).
+Where
+`<task-id-slug>` is the task ID lowercased with dots replaced by dashes (e.g. `P2.4` → `p2-4`, `P3.10` → `p3-10`)
 
-If the branch already exists (picked up mid-way): switch to it instead.
-
-```bash
-git switch feature/folio-<task-id-slug>
+`<summary>` is a brief description of the task (e.g. 'implement-file-tree-item-component').
 ```
 
 Confirm which branch is now active before continuing.

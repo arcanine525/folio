@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Editor } from "@/components/editor/Editor";
 import { Preview } from "@/components/editor/Preview";
 import { EditorToolbar } from "@/components/editor/EditorToolbar";
+import { useEditor } from "@/hooks/useEditor";
 import { useAppStore } from "@/store/appStore";
 
 /** Demo content shown until OPFS file loading arrives in Phase 2. */
@@ -60,13 +61,15 @@ interface EditorZoneProps {
   onChange: (value: string) => void;
   viewRef: React.RefObject<EditorView | null>;
   mode: "split" | "source" | "preview";
+  dirty?: boolean;
+  saving?: boolean;
 }
 
 /** Editor area: toolbar on top, then panes switched by editor mode. */
-function EditorZone({ doc, onChange, viewRef, mode }: EditorZoneProps) {
+function EditorZone({ doc, onChange, viewRef, mode, dirty, saving }: EditorZoneProps) {
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <EditorToolbar content={doc} viewRef={viewRef} />
+      <EditorToolbar content={doc} viewRef={viewRef} dirty={dirty} saving={saving} />
       <div className="flex min-h-0 flex-1">
         {mode !== "preview" && (
           <div
@@ -92,22 +95,25 @@ function EditorZone({ doc, onChange, viewRef, mode }: EditorZoneProps) {
 }
 
 export default function Page() {
-  const content = useAppStore((s) => s.content);
-  const setContent = useAppStore((s) => s.setContent);
+  const activeFileId = useAppStore((s) => s.activeFileId);
   const editorMode = useAppStore((s) => s.editorMode);
   const viewRef = useRef<EditorView | null>(null);
 
-  // Phase 1 has no persistence; fall back to the welcome doc when empty.
-  const doc = content || WELCOME_DOC;
+  // useEditor is the sole writer of `content` — it loads on file switch and
+  // autosaves on edit. Show the welcome doc only until a file is opened.
+  const { content, handleChange, isDirty, saving } = useEditor();
+  const doc = activeFileId ? content : WELCOME_DOC;
 
   return (
     <AppShell
       editorZone={
         <EditorZone
           doc={doc}
-          onChange={setContent}
+          onChange={handleChange}
           viewRef={viewRef}
           mode={editorMode}
+          dirty={isDirty}
+          saving={saving}
         />
       }
     />

@@ -125,11 +125,11 @@
 - [x] `P2.5.4` Auto-focus input on mount
 
 ### 2.6 — Autosave (`hooks/useEditor.ts`)
-- [ ] `P2.6.1` Load file content from OPFS when `activeFileId` changes; set both `content` and `savedContent`
-- [ ] `P2.6.2` On `handleChange(newContent)`: update `content` in Zustand, start 800ms debounce timer
-- [ ] `P2.6.3` On debounce fire: `writeFile(activeFileId, newContent)` → update `savedContent` → clear `saving` flag
-- [ ] `P2.6.4` Expose `isDirty` = `content !== savedContent` and `saving` boolean
-- [ ] `P2.6.5` Cancel pending timer on unmount or when `activeFileId` changes
+- [x] `P2.6.1` Load file content from OPFS when `activeFileId` changes; set both `content` and `savedContent`
+- [x] `P2.6.2` On `handleChange(newContent)`: update `content` in Zustand, start 800ms debounce timer
+- [x] `P2.6.3` On debounce fire: `writeFile(activeFileId, newContent)` → update `savedContent` → clear `saving` flag
+- [x] `P2.6.4` Expose `isDirty` = `content !== savedContent` and `saving` boolean
+- [x] `P2.6.5` Cancel pending timer on unmount or when `activeFileId` changes
 
 ### 2.7 — Storage quota check
 - [ ] `P2.7.1` Call `navigator.storage.estimate()` on app startup and after each `writeFile`

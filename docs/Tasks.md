@@ -299,12 +299,12 @@
 - [x] `P4.4.7` Post `{ type: 'indexed' }` after bulk indexing completes
 
 ### 4.5 — Search hook (`hooks/useSearch.ts`)
-- [ ] `P4.5.1` Create `Worker` from `search-worker.ts` once on mount; terminate on unmount
-- [ ] `P4.5.2` On startup: read all `.md` files from OPFS, send `{ type: 'index', payload }` to worker
-- [ ] `P4.5.3` `search(query)` → debounce 150ms → send `{ type: 'search' }` → receive `results` via `onmessage`
-- [ ] `P4.5.4` `updateIndex(path, name, content)` → send `{ type: 'update' }` — called after each file save
-- [ ] `P4.5.5` `removeFromIndex(path)` → send `{ type: 'remove' }` — called on file delete
-- [ ] `P4.5.6` Return `{ results, search, loading }`
+- [x] `P4.5.1` Create `Worker` from `search-worker.ts` once on mount; terminate on unmount
+- [x] `P4.5.2` On startup: read all `.md` files from OPFS, send `{ type: 'index', payload }` to worker
+- [x] `P4.5.3` `search(query)` → debounce 150ms → send `{ type: 'search' }` → receive `results` via `onmessage`
+- [x] `P4.5.4` `updateIndex(path, name, content)` → send `{ type: 'update' }` — called after each file save
+- [x] `P4.5.5` `removeFromIndex(path)` → send `{ type: 'remove' }` — called on file delete
+- [x] `P4.5.6` Return `{ results, search, loading }`
 
 ### 4.6 — SearchModal component (`components/search/SearchModal.tsx`)
 - [ ] `P4.6.1` Open on ⌘K / Ctrl+K; close on Escape or backdrop click

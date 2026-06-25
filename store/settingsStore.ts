@@ -121,6 +121,13 @@ export interface SettingsState {
   removeProvider: (id: string) => void;
   setKey: (providerId: string, key: string) => void;
   clearKey: (providerId: string) => void;
+  /** Bulk-replace all settings (providers, active id, keys). Used by the
+   *  Settings modal's Save. Persists configs + keys atomically. */
+  replaceSettings: (input: {
+    activeProviderId: string;
+    providers: ProviderConfig[];
+    keys: Record<string, string>;
+  }) => void;
   /** The active config resolved against `providers`. */
   getActive: () => ProviderConfig | undefined;
 }
@@ -174,6 +181,12 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
     const keys = { ...get().keys };
     delete keys[providerId];
     set({ keys });
+    writeJSON(KEYS_KEY, keys);
+  },
+
+  replaceSettings: ({ activeProviderId, providers, keys }) => {
+    set({ activeProviderId, providers, keys });
+    persistSettings(get());
     writeJSON(KEYS_KEY, keys);
   },
 

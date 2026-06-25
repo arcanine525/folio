@@ -28,6 +28,7 @@ export function Sidebar() {
   const content = useAppStore((s) => s.content);
   const savedContent = useAppStore((s) => s.savedContent);
   const setActiveFile = useAppStore((s) => s.setActiveFile);
+  const setSettingsOpen = useAppStore((s) => s.setSettingsOpen);
   const quota = useStorageQuota();
 
   const [creating, setCreating] = useState<Creating | null>(null);
@@ -133,12 +134,22 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-border px-3 py-3">
-        <button
-          type="button"
-          className="font-caption w-full rounded-chip border border-border bg-surface-primary px-2 py-2 text-xs text-fg-secondary transition-colors hover:text-fg-primary"
-        >
-          Upload audio / transcript
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="font-caption flex-1 rounded-chip border border-border bg-surface-primary px-2 py-2 text-xs text-fg-secondary transition-colors hover:text-fg-primary"
+          >
+            Upload audio / transcript
+          </button>
+          <button
+            type="button"
+            aria-label="AI settings"
+            onClick={() => setSettingsOpen(true)}
+            className="font-caption flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-chip border border-border bg-surface-primary text-sm text-fg-secondary transition-colors hover:text-fg-primary"
+          >
+            ⚙
+          </button>
+        </div>
       </div>
     </aside>
   );

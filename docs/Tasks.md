@@ -172,95 +172,95 @@
 - [x] `P3.2.9` Add a hard monthly spend cap + minimal auth in front of the route (see review notes)
 
 ### 3.3 — Whisper proxy (`app/api/transcribe/route.ts`)
-- [ ] `P3.3.1` Export `POST` handler
-- [ ] `P3.3.2` Parse `multipart/form-data`, extract `file` field
-- [ ] `P3.3.3` Validate MIME type — allow: `audio/mpeg`, `audio/wav`, `audio/mp4`, `audio/m4a`, `audio/webm`, `audio/ogg`; return `415` otherwise
-- [ ] `P3.3.4` Validate file size < 25MB; return `413` otherwise
-- [ ] `P3.3.5` Forward `FormData` to `https://api.openai.com/v1/audio/transcriptions` with `model: whisper-1`
-- [ ] `P3.3.6` Return `{ text: string }` from Whisper response
+- [x] `P3.3.1` Export `POST` handler
+- [x] `P3.3.2` Parse `multipart/form-data`, extract `file` field
+- [x] `P3.3.3` Validate MIME type — allow: `audio/mpeg`, `audio/wav`, `audio/mp4`, `audio/m4a`, `audio/webm`, `audio/ogg`; return `415` otherwise
+- [x] `P3.3.4` Validate file size < 25MB; return `413` otherwise
+- [x] `P3.3.5` Forward `FormData` to `https://api.openai.com/v1/audio/transcriptions` with `model: whisper-1`
+- [x] `P3.3.6` Return `{ text: string }` from Whisper response
 
 ### 3.4 — Dual-dialect stream consumer (`lib/ai.ts`)
-- [ ] `P3.4.1` `streamAI(messages, system, provider, apiKey?, signal?)` as an `async function*` generator
-- [ ] `P3.4.2` `buildRequest(provider, apiKey, messages, system)` → `{ url, headers, body }`, branch on `mode` then `dialect`
-- [ ] `P3.4.3` `proxy` mode → POST `/api/ai` with `{ messages, system }` (key stays server-side, no key in browser)
-- [ ] `P3.4.4` `anthropic` dialect (byok/local) → `${baseUrl}/v1/messages`; headers `x-api-key`, `anthropic-version`, `anthropic-dangerous-direct-browser-access: true`; body carries top-level `system`
-- [ ] `P3.4.5` `openai` dialect (byok/local) → `${baseUrl}/chat/completions`; header `authorization: Bearer`; fold `system` into a leading system message
-- [ ] `P3.4.6` Omit the auth header for keyless `local` providers
-- [ ] `P3.4.7` `parseStream(dialect, reader)` — shared SSE buffering (split on `\n`, keep partial last line, skip malformed JSON, stop on `[DONE]`)
-- [ ] `P3.4.8` Per-dialect delta extractor: anthropic `content_block_delta → delta.text`; openai `choices[0].delta.content`
-- [ ] `P3.4.9` Throw on non-ok / missing body with status code in message
-- [ ] `P3.4.10` Unit tests: all 6 `mode × dialect` cells produce correct url/headers/body; parser handles both SSE fixtures, split buffers, malformed chunks
+- [x] `P3.4.1` `streamAI(messages, system, provider, apiKey?, signal?)` as an `async function*` generator
+- [x] `P3.4.2` `buildRequest(provider, apiKey, messages, system)` → `{ url, headers, body }`, branch on `mode` then `dialect`
+- [x] `P3.4.3` `proxy` mode → POST `/api/ai` with `{ messages, system }` (key stays server-side, no key in browser)
+- [x] `P3.4.4` `anthropic` dialect (byok/local) → `${baseUrl}/v1/messages`; headers `x-api-key`, `anthropic-version`, `anthropic-dangerous-direct-browser-access: true`; body carries top-level `system`
+- [x] `P3.4.5` `openai` dialect (byok/local) → `${baseUrl}/chat/completions`; header `authorization: Bearer`; fold `system` into a leading system message
+- [x] `P3.4.6` Omit the auth header for keyless `local` providers
+- [x] `P3.4.7` `parseStream(dialect, reader)` — shared SSE buffering (split on `\n`, keep partial last line, skip malformed JSON, stop on `[DONE]`)
+- [x] `P3.4.8` Per-dialect delta extractor: anthropic `content_block_delta → delta.text`; openai `choices[0].delta.content`
+- [x] `P3.4.9` Throw on non-ok / missing body with status code in message
+- [x] `P3.4.10` Unit tests: all 6 `mode × dialect` cells produce correct url/headers/body; parser handles both SSE fixtures, split buffers, malformed chunks
 
 ### 3.5 — AI hook (`hooks/useAI.ts`)
-- [ ] `P3.5.1` State: `output: string`, `loading: boolean`, `error: string | null`, `history: AIMessage[]`
-- [ ] `P3.5.2` Read active `provider` + `apiKey` from `settingsStore` (`getActive()` + `keys[provider.id]`)
-- [ ] `P3.5.3` Guard: no provider → error "No AI provider configured"; `byok` without key → error "needs an API key — open Settings → AI"
-- [ ] `P3.5.4` `run(userMessage, systemPrompt, contextContent)`:
+- [x] `P3.5.1` State: `output: string`, `loading: boolean`, `error: string | null`, `history: AIMessage[]`
+- [x] `P3.5.2` Read active `provider` + `apiKey` from `settingsStore` (`getActive()` + `keys[provider.id]`)
+- [x] `P3.5.3` Guard: no provider → error "No AI provider configured"; `byok` without key → error "needs an API key — open Settings → AI"
+- [x] `P3.5.4` `run(userMessage, systemPrompt, contextContent)`:
   - Abort any in-flight `AbortController`
   - Build messages: `[...history, { role: 'user', content: '<document>\n{ctx}\n</document>\n\n{userMessage}' }]`
   - Reset `output`, `error`; set `loading: true`
   - Iterate `streamAI(messages, systemPrompt, provider, apiKey, signal)`, accumulate tokens into `output`
   - On completion: push user + assistant messages to `history`
   - On `AbortError`: swallow silently; on other error: set `error`; always: set `loading: false`
-- [ ] `P3.5.5` `stop()` — call `abortController.abort()`
-- [ ] `P3.5.6` `clearHistory()` — reset `history` to `[]`
+- [x] `P3.5.5` `stop()` — call `abortController.abort()`
+- [x] `P3.5.6` `clearHistory()` — reset `history` to `[]`
 
 ### 3.6 — Scope context builder (`lib/ai.ts` or `hooks/useAI.ts`)
-- [ ] `P3.6.1` `buildContext(scope, activeFileId): Promise<string>`
-- [ ] `P3.6.2` `'file'` → `readFile(activeFileId)`
-- [ ] `P3.6.3` `'folder'` → list all `.md` files in the active file's parent folder, read each, join with `\n\n---\n\n# {filename}\n\n`
-- [ ] `P3.6.4` `'all'` → walk entire OPFS tree, read all `.md` files, same join format
-- [ ] `P3.6.5` Estimate token count (chars / 4); if > 100 000, prompt user with a warning modal before proceeding
+- [x] `P3.6.1` `buildContext(scope, activeFileId): Promise<string>`
+- [x] `P3.6.2` `'file'` → `readFile(activeFileId)`
+- [x] `P3.6.3` `'folder'` → list all `.md` files in the active file's parent folder, read each, join with `\n\n---\n\n# {filename}\n\n`
+- [x] `P3.6.4` `'all'` → walk entire OPFS tree, read all `.md` files, same join format
+- [x] `P3.6.5` Estimate token count (chars / 4); if > 100 000, prompt user with a warning modal before proceeding
 
 ### 3.7 — Prompt templates (`lib/prompts.ts`)
-- [ ] `P3.7.1` Define `SYSTEM_BASE` string
-- [ ] `P3.7.2` Define `PROMPTS` map with 6 keys: `'Action items'`, `'Decisions'`, `'Questions'`, `'Timeline'`, `'Summary'`, `'Next steps'`
-- [ ] `P3.7.3` Each value is `SYSTEM_BASE` + task-specific extraction instruction
-- [ ] `P3.7.4` Export both `SYSTEM_BASE` and `PROMPTS`
+- [x] `P3.7.1` Define `SYSTEM_BASE` string
+- [x] `P3.7.2` Define `PROMPTS` map with 6 keys: `'Action items'`, `'Decisions'`, `'Questions'`, `'Timeline'`, `'Summary'`, `'Next steps'`
+- [x] `P3.7.3` Each value is `SYSTEM_BASE` + task-specific extraction instruction
+- [x] `P3.7.4` Export both `SYSTEM_BASE` and `PROMPTS`
 
 ### 3.8 — ScopeSelector component (`components/ai/ScopeSelector.tsx`)
-- [ ] `P3.8.1` Render 3 pill buttons: File / Folder / All
-- [ ] `P3.8.2` Active: `#0066FF` bg, white Funnel Sans 11px 600 text
-- [ ] `P3.8.3` Inactive: transparent bg, Funnel Sans 11px `#666666` text
-- [ ] `P3.8.4` `4px` border radius on each pill
-- [ ] `P3.8.5` Call `onChange(scope)` on click
+- [x] `P3.8.1` Render 3 pill buttons: File / Folder / All
+- [x] `P3.8.2` Active: `#0066FF` bg, white Funnel Sans 11px 600 text
+- [x] `P3.8.3` Inactive: transparent bg, Funnel Sans 11px `#666666` text
+- [x] `P3.8.4` `4px` border radius on each pill
+- [x] `P3.8.5` Call `onChange(scope)` on click
 
 ### 3.9 — QuickActions component (`components/ai/QuickActions.tsx`)
-- [ ] `P3.9.1` Render horizontal scrollable chip row (no wrapping)
-- [ ] `P3.9.2` 6 chips: Action items · Decisions · Questions · Timeline · Summary · Next steps
-- [ ] `P3.9.3` Chip style: Funnel Sans 11px `#666666`, `#F5F5F5` bg, `#E5E5E5` border, `4px` radius, `4px 8px` padding
-- [ ] `P3.9.4` On click: set selected chip (highlighted with `#EBF0FF` bg + `#0066FF` text), call `onSelect(promptKey)`
+- [x] `P3.9.1` Render horizontal scrollable chip row (no wrapping)
+- [x] `P3.9.2` 6 chips: Action items · Decisions · Questions · Timeline · Summary · Next steps
+- [x] `P3.9.3` Chip style: Funnel Sans 11px `#666666`, `#F5F5F5` bg, `#E5E5E5` border, `4px` radius, `4px 8px` padding
+- [x] `P3.9.4` On click: set selected chip (highlighted with `#EBF0FF` bg + `#0066FF` text), call `onSelect(promptKey)`
 
 ### 3.10 — AIStream component (`components/ai/AIStream.tsx`)
-- [ ] `P3.10.1` Accept `content: string` prop (streaming markdown output)
-- [ ] `P3.10.2` Re-run unified+mermaid pipeline on each content update (debounce 100ms to avoid thrashing)
-- [ ] `P3.10.3` Show 3-dot pulse animation when `loading === true` and `content === ''` (before first token)
-- [ ] `P3.10.4` Render result as `dangerouslySetInnerHTML` inside a `prose`-classed div (sanitize — see review notes)
+- [x] `P3.10.1` Accept `content: string` prop (streaming markdown output)
+- [x] `P3.10.2` Re-run unified+mermaid pipeline on each content update (debounce 100ms to avoid thrashing)
+- [x] `P3.10.3` Show 3-dot pulse animation when `loading === true` and `content === ''` (before first token)
+- [x] `P3.10.4` Render result as `dangerouslySetInnerHTML` inside a `prose`-classed div (sanitize — see review notes)
 
 ### 3.11 — AIPanel component (`components/ai/AIPanel.tsx`)
-- [ ] `P3.11.1` Header: "AI Assistant" (Inter 600 13px `#1A1A1A`) + `<ScopeSelector>` on the right
-- [ ] `P3.11.2` Header border-bottom: `1px #E5E5E5`; `0 1px 4px #00000008` shadow
-- [ ] `P3.11.3` `<QuickActions>` row below header; border-bottom `1px #E5E5E5`
-- [ ] `P3.11.4` Prompt input: Geist 12px, `#F5F5F5` bg, `#E5E5E5` border, `6px` radius, placeholder "Optional: add focus or constraints…"
-- [ ] `P3.11.5` `⚡ Summarize` button: Inter 600 12px, `#0066FF` bg, white text, `4px` radius — triggers `run()` with selected scope + quick-action prompt
-- [ ] `P3.11.6` Stream badge (when loading/done): green dot + Funnel Sans 11px showing **active provider · model · scope · N files** (e.g. "Local — Ollama · llama3.1:8b · Folder · 3 files")
-- [ ] `P3.11.7` When the active provider is unset or missing a required key, show a "Configure AI" link that opens `<SettingsModal>`
-- [ ] `P3.11.8` `<AIStream>` output area, `overflow-y: auto`, flex-grows to fill remaining height
-- [ ] `P3.11.9` Chat input row at bottom: Geist placeholder "Ask a question…", `↑` send button (`#0066FF`, `6px` radius)
-- [ ] `P3.11.10` Hint row: Funnel Sans 10px `#999999` — "Esc to stop · ⌘/ toggle panel · ⌘K search"
-- [ ] `P3.11.11` Wire Escape key to `stop()`; wire send button and Enter key to `run()` with chat message
-- [ ] `P3.11.12` `clearHistory()` button accessible via a small icon or right-click
+- [x] `P3.11.1` Header: "AI Assistant" (Inter 600 13px `#1A1A1A`) + `<ScopeSelector>` on the right
+- [x] `P3.11.2` Header border-bottom: `1px #E5E5E5`; `0 1px 4px #00000008` shadow
+- [x] `P3.11.3` `<QuickActions>` row below header; border-bottom `1px #E5E5E5`
+- [x] `P3.11.4` Prompt input: Geist 12px, `#F5F5F5` bg, `#E5E5E5` border, `6px` radius, placeholder "Optional: add focus or constraints…"
+- [x] `P3.11.5` `⚡ Summarize` button: Inter 600 12px, `#0066FF` bg, white text, `4px` radius — triggers `run()` with selected scope + quick-action prompt
+- [x] `P3.11.6` Stream badge (when loading/done): green dot + Funnel Sans 11px showing **active provider · model · scope · N files** (e.g. "Local — Ollama · llama3.1:8b · Folder · 3 files")
+- [x] `P3.11.7` When the active provider is unset or missing a required key, show a "Configure AI" link that opens `<SettingsModal>`
+- [x] `P3.11.8` `<AIStream>` output area, `overflow-y: auto`, flex-grows to fill remaining height
+- [x] `P3.11.9` Chat input row at bottom: Geist placeholder "Ask a question…", `↑` send button (`#0066FF`, `6px` radius)
+- [x] `P3.11.10` Hint row: Funnel Sans 10px `#999999` — "Esc to stop · ⌘/ toggle panel · ⌘K search"
+- [x] `P3.11.11` Wire Escape key to `stop()`; wire send button and Enter key to `run()` with chat message
+- [x] `P3.11.12` `clearHistory()` button accessible via a small icon or right-click
 
 ### 3.12 — Settings modal (`components/settings/SettingsModal.tsx`)
-- [ ] `P3.12.1` Open from a ⚙ icon (sidebar footer / top bar) or `⌘,`; Minimal Ink styling, `12px` radius, Soft Cloud shadow
-- [ ] `P3.12.2` "PROVIDER" section: radio cards for each `ProviderConfig` (Folio Cloud · Anthropic · OpenAI · Local — Ollama …); selected = `2px #0066FF` + `#EBF0FF` bg
-- [ ] `P3.12.3` `+ Add local` ghost button → spawns a new editable `local` card with a uuid id
-- [ ] `P3.12.4` "CONFIGURATION" fields: dialect pills (Anthropic / OpenAI), Base URL + Model + Max tokens (Geist Mono); cloud cards lock `baseUrl`/`dialect`
-- [ ] `P3.12.5` API key field: password input + show/hide toggle; hidden for `proxy` and keyless `local`; note "Stored in your browser (localStorage)"
-- [ ] `P3.12.6` Test connection: 1-token non-streaming probe to the configured endpoint; report latency on success or the error string (catches 401 / CORS / wrong base URL)
-- [ ] `P3.12.7` Save → write configs to `folio.ai.settings`, keys to `folio.ai.keys`, set active provider, close; Cancel discards
-- [ ] `P3.12.8` Empty/error hint for `local` mode links CORS setup (Ollama `OLLAMA_ORIGINS`; LM Studio CORS toggle)
-- [ ] `P3.12.9` Component tests: card select swaps editable fields; key field hidden for `proxy`; Save persists; Test reports success/error
+- [x] `P3.12.1` Open from a ⚙ icon (sidebar footer / top bar) or `⌘,`; Minimal Ink styling, `12px` radius, Soft Cloud shadow
+- [x] `P3.12.2` "PROVIDER" section: radio cards for each `ProviderConfig` (Folio Cloud · Anthropic · OpenAI · Local — Ollama …); selected = `2px #0066FF` + `#EBF0FF` bg
+- [x] `P3.12.3` `+ Add local` ghost button → spawns a new editable `local` card with a uuid id
+- [x] `P3.12.4` "CONFIGURATION" fields: dialect pills (Anthropic / OpenAI), Base URL + Model + Max tokens (Geist Mono); cloud cards lock `baseUrl`/`dialect`
+- [x] `P3.12.5` API key field: password input + show/hide toggle; hidden for `proxy` and keyless `local`; note "Stored in your browser (localStorage)"
+- [x] `P3.12.6` Test connection: 1-token non-streaming probe to the configured endpoint; report latency on success or the error string (catches 401 / CORS / wrong base URL)
+- [x] `P3.12.7` Save → write configs to `folio.ai.settings`, keys to `folio.ai.keys`, set active provider, close; Cancel discards
+- [x] `P3.12.8` Empty/error hint for `local` mode links CORS setup (Ollama `OLLAMA_ORIGINS`; LM Studio CORS toggle)
+- [x] `P3.12.9` Component tests: card select swaps editable fields; key field hidden for `proxy`; Save persists; Test reports success/error
 
 **✓ Phase 3 done when:** Pick a provider in Settings (Proxy / BYOK / Local), paste a transcript, click "Action items", and see a streamed checklist within 2–3 s — with the stream badge naming which provider ran.
 
@@ -495,7 +495,7 @@
 |---|---|---|
 | 1 — Skeleton + editor | 1.1–1.8 | ✅ Done |
 | 2 — OPFS + file tree | 2.1–2.8 | ✅ Done |
-| 3 — AI provider layer + streaming | 3.1–3.12 | 🟡 In progress |
+| 3 — AI provider layer + streaming | 3.1–3.12 | ✅ Done |
 | 4 — Search + metadata + cache | 4.1–4.7 | ⬜ Not started |
 | 5 — Audio + transcription | 5.1–5.4 | ⬜ Not started |
 | 6 — Export | 6.1–6.3 | ⬜ Not started |

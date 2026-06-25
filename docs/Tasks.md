@@ -110,13 +110,13 @@
 - [ ] `P2.3.4` Render `FileTreeItem` for each node
 
 ### 2.4 — FileTreeItem component (`components/filetree/FileTreeItem.tsx`)
-- [ ] `P2.4.1` Left-click → call `setActiveFile(node.id)`, read file content from OPFS, call `setContent()`
-- [ ] `P2.4.2` Active file: `#EBF0FF` background, 3px `#0066FF` left bar, Inter 600 label
-- [ ] `P2.4.3` Non-active file: Geist 12px `#666666` label
-- [ ] `P2.4.4` Folder: Inter 500 12px `#1A1A1A` label
-- [ ] `P2.4.5` Right-click → show context menu: Rename · Delete · New file here · New folder here
-- [ ] `P2.4.6` Show `●` dot (Funnel Sans, `#0066FF`) on rows with unsaved changes (dirty flag)
-- [ ] `P2.4.7` `ContextMenu` — positioned absolutely, closes on outside click or Escape
+- [x] `P2.4.1` Left-click → call `setActiveFile(node.id)`, read file content from OPFS, call `setContent()`
+- [x] `P2.4.2` Active file: `#EBF0FF` background, 3px `#0066FF` left bar, Inter 600 label
+- [x] `P2.4.3` Non-active file: Geist 12px `#666666` label
+- [x] `P2.4.4` Folder: Inter 500 12px `#1A1A1A` label
+- [x] `P2.4.5` Right-click → show context menu: Rename · Delete · New file here · New folder here
+- [x] `P2.4.6` Show `●` dot (Funnel Sans, `#0066FF`) on rows with unsaved changes (dirty flag)
+- [x] `P2.4.7` `ContextMenu` — positioned absolutely, closes on outside click or Escape
 
 ### 2.5 — NewItemInput component (`components/filetree/NewItemInput.tsx`)
 - [ ] `P2.5.1` Render inline text `<input>` in place of the file/folder row

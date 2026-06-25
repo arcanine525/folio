@@ -82,6 +82,8 @@ folio/
 │   │   ├── QuickActions.tsx         # Preset prompt chips
 │   │   ├── ScopeSelector.tsx        # File / Folder / All toggle
 │   │   └── AudioUpload.tsx          # Drag-and-drop + XHR progress
+│   ├── settings/
+│   │   └── SettingsModal.tsx        # AI provider picker (Proxy/BYOK/Local) + config + test
 │   ├── search/
 │   │   └── SearchModal.tsx          # ⌘K modal, filter tabs, result rows
 │   ├── export/
@@ -102,9 +104,10 @@ folio/
 │   ├── prompts.ts                   # SYSTEM_BASE + PROMPTS map
 │   └── search-worker.ts             # Flexsearch Document, runs in Worker
 ├── store/
-│   └── appStore.ts                  # Zustand: activeFileId, content, panel layout, editorMode
+│   ├── appStore.ts                  # Zustand: activeFileId, content, panel layout, editorMode
+│   └── settingsStore.ts             # Zustand: AI providers, active provider, keys (localStorage)
 ├── types/
-│   └── index.ts                     # FSNode, AIMessage, AIScope, ExportFormat, FileMeta
+│   └── index.ts                     # FSNode, AIMessage, AIScope, ProviderConfig, AISettings, …
 ├── public/
 │   └── favicon.svg                  # Folio logo mark
 ├── vercel.json                      # maxDuration: 60 (ai), 120 (transcribe)
@@ -259,25 +262,56 @@ if ((usage / quota) > 0.8) showWarning('Storage 80%+ full…')
 
 ---
 
-## Phase 3 — AI proxy + streaming summary
+## Phase 3 — AI provider layer + streaming summary
 
-**Goal:** AI panel with streaming summaries, quick-action presets, and file/folder/all-scoped chat.
+**Goal:** Provider-agnostic AI — **Proxy / BYOK / Local** modes across **OpenAI + Anthropic** dialects —
+behind a Settings modal, with streaming summaries, quick-action presets, and file/folder/all-scoped chat.
 
-**Effort:** 2 days
+**Design:** full spec in [`ai-provider-design.md`](./ai-provider-design.md). A provider is described by two
+independent axes — `mode` (`proxy` | `byok` | `local`) decides **where** the request goes, `dialect`
+(`anthropic` | `openai`) decides **how** it's shaped — so Ollama, LM Studio, OpenAI, and Anthropic all
+work behind one `streamAI()`.
 
-### 3.1 Claude proxy (`app/api/ai/route.ts`)
+**Effort:** 3 days
+
+### 3.1 Provider types + settings store (`types/index.ts`, `store/settingsStore.ts`)
 
 ```typescript
-// Rate limit: 10 req/min per IP (in-memory Map, resets each minute)
+type ProviderMode = 'proxy' | 'byok' | 'local'
+type ApiDialect   = 'anthropic' | 'openai'
+
+interface ProviderConfig {
+  id: string; label: string; mode: ProviderMode; dialect: ApiDialect
+  baseUrl: string; model: string; maxTokens: number
+}
+interface AISettings {
+  activeProviderId: string
+  providers: ProviderConfig[]
+  keys: Record<string, string>   // by provider id — persisted separately, never logged
+}
+```
+
+Zustand store, persisted to `localStorage`: non-secrets under `folio.ai.settings`, keys under
+`folio.ai.keys` (so configs can later be exported without leaking secrets). Seed `DEFAULT_PROVIDERS`
+(Folio Cloud proxy, Anthropic BYOK, OpenAI BYOK, Local Ollama); default active = `proxy`. Helpers:
+`setActiveProvider`, `upsertProvider`, `removeProvider`, `setKey`, `clearKey`, `getActive`.
+
+### 3.2 Claude proxy (`app/api/ai/route.ts`) — used by `proxy` mode only
+
+```typescript
+// Rate limit: 10 req/min — DURABLE store (Upstash / Vercel KV), not an in-memory Map
+//   (a Map resets on every serverless cold start → effectively no limit)
+// Hard monthly spend cap + minimal auth in front of the route
 // Payload guard: reject if estimated tokens > 150k (JSON.length / 4 > 600k chars)
 // Forward to https://api.anthropic.com/v1/messages with stream: true
 // Pipe SSE body straight through — no buffering
 // Headers: content-type: text/event-stream, x-accel-buffering: no
 ```
 
-`ANTHROPIC_API_KEY` read from `process.env` — never sent to the browser.
+`ANTHROPIC_API_KEY` read from `process.env` — never sent to the browser. BYOK/local modes bypass this
+route entirely and call the provider directly from the browser.
 
-### 3.2 Whisper proxy (`app/api/transcribe/route.ts`)
+### 3.3 Whisper proxy (`app/api/transcribe/route.ts`)
 
 ```typescript
 // Accept multipart/form-data with `file` field
@@ -287,32 +321,43 @@ if ((usage / quota) > 0.8) showWarning('Storage 80%+ full…')
 // Return { text: string }
 ```
 
-### 3.3 Stream consumer (`lib/ai.ts`)
+### 3.4 Dual-dialect stream consumer (`lib/ai.ts`)
 
 ```typescript
 export async function* streamAI(
   messages: AIMessage[],
   system: string,
+  provider: ProviderConfig,
+  apiKey?: string,
   signal?: AbortSignal,
 ): AsyncGenerator<string>
-// fetch('/api/ai') → ReadableStream → SSE chunk parse → yield delta.text
-// Handle buffer splits across chunk boundaries
-// Skip malformed JSON chunks silently
+// buildRequest(provider, apiKey, messages, system) → { url, headers, body }, branch on mode then dialect:
+//   proxy            → POST /api/ai { messages, system }            (no key in browser)
+//   anthropic byok/local → ${baseUrl}/v1/messages, x-api-key,
+//                          anthropic-version, anthropic-dangerous-direct-browser-access: true,
+//                          top-level `system`
+//   openai byok/local    → ${baseUrl}/chat/completions, Bearer key,
+//                          system folded into a leading system message
+//   (omit auth header for keyless local servers)
+// parseStream(dialect, reader): shared SSE buffering (split \n, keep partial, skip malformed, stop [DONE])
+//   anthropic → content_block_delta.delta.text   |   openai → choices[0].delta.content
 ```
 
-### 3.4 AI hook (`hooks/useAI.ts`)
+### 3.5 AI hook (`hooks/useAI.ts`)
 
-State: `output`, `loading`, `error`, `history`.  
+State: `output`, `loading`, `error`, `history`. Reads the active `provider` + `apiKey` from
+`settingsStore`. Guards: no provider → "No AI provider configured"; `byok` without key → "needs an
+API key — open Settings → AI".  
 `run(userMessage, systemPrompt, contextContent)`:
 - Abort any in-flight request
 - Build messages array with `<document>` wrapper around context
-- Stream tokens into `output` via `for await`
+- Stream tokens into `output` via `for await` over `streamAI(..., provider, apiKey, signal)`
 - Append to `history` on completion
 
 `stop()` → `abortController.abort()`  
 `clearHistory()` → reset chat
 
-### 3.5 Scope context builder
+### 3.6 Scope context builder
 
 ```typescript
 // 'file'   → readFile(activeFileId)
@@ -321,17 +366,28 @@ State: `output`, `loading`, `error`, `history`.
 // Warn user if estimated context > 100k tokens before sending
 ```
 
-### 3.6 AI panel (`components/ai/AIPanel.tsx`)
+### 3.7 AI panel (`components/ai/AIPanel.tsx`)
 
 Top to bottom:
 1. **Header** — "AI Assistant" (Inter 600) + `ScopeSelector` (File / Folder / All pills, `#0066FF` active)
 2. **Quick actions** — `QuickActions.tsx`: chip row of `Action items · Decisions · Questions · Timeline · Summary · Next steps`, Funnel Sans 11px, `#F5F5F5` bg, `4px` radius
 3. **Prompt input** — optional free-text, Geist 12px, `#F5F5F5` bg
 4. **Summarize button** — Inter 600, `#0066FF`, `4px` radius, `⚡ Summarize`
-5. **Response area** — `AIStream.tsx` renders streaming markdown via Preview pipeline (re-process on each token batch); stream badge (green dot + Funnel Sans label showing scope + file count)
+5. **Response area** — `AIStream.tsx` renders streaming markdown via Preview pipeline (re-process on each token batch); stream badge shows **active provider · model · scope · file count**, so the user always knows where their data is going
 6. **Chat input** — Geist placeholder, send button `#0066FF`, Funnel Sans hint row
+7. **Configure-AI link** — shown when the active provider is unset or missing a key; opens `SettingsModal`
 
-### 3.7 Prompt templates (`lib/prompts.ts`)
+### 3.8 Settings modal (`components/settings/SettingsModal.tsx`)
+
+Opens from a ⚙ icon or `⌘,`. Minimal Ink styling (`12px` radius, Soft Cloud shadow). Radio cards pick
+the active provider; cloud cards lock `baseUrl`/`dialect`, while `local`/custom cards expose dialect
+pills + Base URL + Model + Max tokens (Geist Mono). API key is a password field with show/hide,
+hidden for `proxy` and keyless `local`, with a "stored in your browser" note. A **Test connection**
+button fires a 1-token probe and reports latency or the error (catching bad key / CORS / wrong URL up
+front). `+ Add local` creates a custom card (e.g. LM Studio on `:1234`). Save persists configs and keys
+to their separate localStorage entries.
+
+### 3.9 Prompt templates (`lib/prompts.ts`)
 
 ```typescript
 export const PROMPTS = {
@@ -344,9 +400,11 @@ export const PROMPTS = {
 }
 ```
 
-Model: `claude-sonnet-4-6`, `max_tokens: 4096`.
+Default model: `claude-sonnet-4-6`, `max_tokens: 4096` (overridable per provider via `ProviderConfig`).
 
-**Deliverable:** Drop a transcript → click "Action items" → streamed checklist appears within 2–3s of first token.
+**Deliverable:** Pick a provider in Settings (Proxy / BYOK / Local) → drop a transcript → click
+"Action items" → streamed checklist appears within 2–3s of first token, with the stream badge naming
+the provider that ran.
 
 ---
 
@@ -637,7 +695,7 @@ Inject `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` via Cloud Run Secret Manager.
 |---|---|---|---|
 | 1 | Layout + editor + preview + fonts | `AppShell`, `Editor`, `Preview`, `appStore`, `layout.tsx` | 2–3 days |
 | 2 | OPFS persistence + file tree + autosave | `lib/opfs.ts`, `useFileTree`, `FileTree`, `useEditor` | 2–3 days |
-| 3 | AI proxy + streaming + quick actions | `/api/ai`, `lib/ai.ts`, `useAI`, `AIPanel`, `lib/prompts.ts` | 2 days |
+| 3 | AI provider layer (Proxy/BYOK/Local) + streaming + settings | `settingsStore`, `lib/ai.ts`, `useAI`, `AIPanel`, `SettingsModal`, `/api/ai` | 3 days |
 | 4 | Search + metadata + tags + AI cache | `search-worker`, `useSearch`, `SearchModal`, `lib/indexeddb.ts` | 2–3 days |
 | 5 | Audio upload + Whisper transcription | `/api/transcribe`, `AudioUpload`, transcript formatter | 1–2 days |
 | 6 | Export (HTML / PDF / DOCX) | `ExportModal`, `useExport`, `docx` AST mapper | 1–2 days |

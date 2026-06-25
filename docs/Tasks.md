@@ -146,96 +146,123 @@
 
 ---
 
-## Phase 3 — AI proxy + streaming summary
-> Goal: AI panel with streaming summaries, presets, scoped context, and chat.
+## Phase 3 — AI provider layer + streaming summary
+> Goal: Provider-agnostic AI — **Proxy / BYOK / Local** modes across **OpenAI + Anthropic** dialects —
+> plus a Settings modal, streaming summaries, presets, scoped context, and chat.
+> **Design:** see `docs/ai-provider-design.md` (two-axis `mode` × `dialect` model).
 
-### 3.1 — Claude proxy (`app/api/ai/route.ts`)
-- [ ] `P3.1.1` Export `POST` handler as a Next.js Route Handler
-- [ ] `P3.1.2` Implement IP-based rate limiter: `Map<ip, { count, resetAt }>`, 10 req/min, return `429` when exceeded
-- [ ] `P3.1.3` Validate payload: estimate tokens as `JSON.stringify(body.messages).length / 4`; return `413` if > 150 000
-- [ ] `P3.1.4` Read `ANTHROPIC_API_KEY` from `process.env` — never expose it in response or logs
-- [ ] `P3.1.5` Forward request to `https://api.anthropic.com/v1/messages` with `stream: true`, model `claude-sonnet-4-6`, `max_tokens: 4096`
-- [ ] `P3.1.6` Pipe `upstream.body` straight to response — no buffering
-- [ ] `P3.1.7` Set headers: `content-type: text/event-stream`, `cache-control: no-cache`, `x-accel-buffering: no`
-- [ ] `P3.1.8` Return `{ status: upstream.status }` error passthrough if upstream is not ok
+### 3.1 — Provider types + settings store (`types/index.ts`, `store/settingsStore.ts`)
+- [ ] `P3.1.1` Add types: `ProviderMode` (`proxy`|`byok`|`local`), `ApiDialect` (`anthropic`|`openai`), `ProviderConfig`, `AISettings`
+- [ ] `P3.1.2` Create `store/settingsStore.ts` — Zustand store: `activeProviderId`, `providers`, `keys`
+- [ ] `P3.1.3` Persist non-secrets to `localStorage` key `folio.ai.settings`; persist `keys` separately to `folio.ai.keys` (SSR-safe, like `appStore`)
+- [ ] `P3.1.4` Seed `DEFAULT_PROVIDERS`: `proxy` (Folio Cloud), `byok-anthropic`, `byok-openai`, `local-ollama`; default `activeProviderId = "proxy"`
+- [ ] `P3.1.5` Implement `setActiveProvider`, `upsertProvider`, `removeProvider`, `setKey`, `clearKey`, `getActive`
+- [ ] `P3.1.6` Custom `local` providers get a uuid id (LM Studio, etc.)
+- [ ] `P3.1.7` Unit tests: round-trip through localStorage; secrets/configs under separate keys; `getActive` resolves
 
-### 3.2 — Whisper proxy (`app/api/transcribe/route.ts`)
-- [ ] `P3.2.1` Export `POST` handler
-- [ ] `P3.2.2` Parse `multipart/form-data`, extract `file` field
-- [ ] `P3.2.3` Validate MIME type — allow: `audio/mpeg`, `audio/wav`, `audio/mp4`, `audio/m4a`, `audio/webm`, `audio/ogg`; return `415` otherwise
-- [ ] `P3.2.4` Validate file size < 25MB; return `413` otherwise
-- [ ] `P3.2.5` Forward `FormData` to `https://api.openai.com/v1/audio/transcriptions` with `model: whisper-1`
-- [ ] `P3.2.6` Return `{ text: string }` from Whisper response
+### 3.2 — Claude proxy (`app/api/ai/route.ts`) — used by `proxy` mode only
+- [ ] `P3.2.1` Export `POST` handler as a Next.js Route Handler
+- [ ] `P3.2.2` Rate limiter via a **durable store** (Upstash/Vercel KV — not an in-memory `Map`, which resets per serverless invocation), 10 req/min, `429` when exceeded
+- [ ] `P3.2.3` Validate payload: estimate tokens as `JSON.stringify(body.messages).length / 4`; return `413` if > 150 000
+- [ ] `P3.2.4` Read `ANTHROPIC_API_KEY` from `process.env` — never expose it in response or logs
+- [ ] `P3.2.5` Forward request to `https://api.anthropic.com/v1/messages` with `stream: true`, model `claude-sonnet-4-6`, `max_tokens: 4096`
+- [ ] `P3.2.6` Pipe `upstream.body` straight to response — no buffering
+- [ ] `P3.2.7` Set headers: `content-type: text/event-stream`, `cache-control: no-cache`, `x-accel-buffering: no`
+- [ ] `P3.2.8` Return `{ status: upstream.status }` error passthrough if upstream is not ok
+- [ ] `P3.2.9` Add a hard monthly spend cap + minimal auth in front of the route (see review notes)
 
-### 3.3 — Stream consumer (`lib/ai.ts`)
-- [ ] `P3.3.1` Implement `streamAI(messages, system, signal?)` as an `async function*` generator
-- [ ] `P3.3.2` `fetch('/api/ai', { method: 'POST', body: JSON.stringify({ messages, system }), signal })`
-- [ ] `P3.3.3` Throw on non-ok response with status code in message
-- [ ] `P3.3.4` Read `res.body` via `getReader()` + `TextDecoder`
-- [ ] `P3.3.5` Maintain a `buffer` string; split on `\n`, keep incomplete last line in buffer
-- [ ] `P3.3.6` For each line starting with `data: `: trim, skip `[DONE]`, `JSON.parse`, yield `event.delta.text` if `type === 'content_block_delta'`
-- [ ] `P3.3.7` Silently skip malformed JSON chunks
+### 3.3 — Whisper proxy (`app/api/transcribe/route.ts`)
+- [ ] `P3.3.1` Export `POST` handler
+- [ ] `P3.3.2` Parse `multipart/form-data`, extract `file` field
+- [ ] `P3.3.3` Validate MIME type — allow: `audio/mpeg`, `audio/wav`, `audio/mp4`, `audio/m4a`, `audio/webm`, `audio/ogg`; return `415` otherwise
+- [ ] `P3.3.4` Validate file size < 25MB; return `413` otherwise
+- [ ] `P3.3.5` Forward `FormData` to `https://api.openai.com/v1/audio/transcriptions` with `model: whisper-1`
+- [ ] `P3.3.6` Return `{ text: string }` from Whisper response
 
-### 3.4 — AI hook (`hooks/useAI.ts`)
-- [ ] `P3.4.1` State: `output: string`, `loading: boolean`, `error: string | null`, `history: AIMessage[]`
-- [ ] `P3.4.2` `run(userMessage, systemPrompt, contextContent)`:
+### 3.4 — Dual-dialect stream consumer (`lib/ai.ts`)
+- [ ] `P3.4.1` `streamAI(messages, system, provider, apiKey?, signal?)` as an `async function*` generator
+- [ ] `P3.4.2` `buildRequest(provider, apiKey, messages, system)` → `{ url, headers, body }`, branch on `mode` then `dialect`
+- [ ] `P3.4.3` `proxy` mode → POST `/api/ai` with `{ messages, system }` (key stays server-side, no key in browser)
+- [ ] `P3.4.4` `anthropic` dialect (byok/local) → `${baseUrl}/v1/messages`; headers `x-api-key`, `anthropic-version`, `anthropic-dangerous-direct-browser-access: true`; body carries top-level `system`
+- [ ] `P3.4.5` `openai` dialect (byok/local) → `${baseUrl}/chat/completions`; header `authorization: Bearer`; fold `system` into a leading system message
+- [ ] `P3.4.6` Omit the auth header for keyless `local` providers
+- [ ] `P3.4.7` `parseStream(dialect, reader)` — shared SSE buffering (split on `\n`, keep partial last line, skip malformed JSON, stop on `[DONE]`)
+- [ ] `P3.4.8` Per-dialect delta extractor: anthropic `content_block_delta → delta.text`; openai `choices[0].delta.content`
+- [ ] `P3.4.9` Throw on non-ok / missing body with status code in message
+- [ ] `P3.4.10` Unit tests: all 6 `mode × dialect` cells produce correct url/headers/body; parser handles both SSE fixtures, split buffers, malformed chunks
+
+### 3.5 — AI hook (`hooks/useAI.ts`)
+- [ ] `P3.5.1` State: `output: string`, `loading: boolean`, `error: string | null`, `history: AIMessage[]`
+- [ ] `P3.5.2` Read active `provider` + `apiKey` from `settingsStore` (`getActive()` + `keys[provider.id]`)
+- [ ] `P3.5.3` Guard: no provider → error "No AI provider configured"; `byok` without key → error "needs an API key — open Settings → AI"
+- [ ] `P3.5.4` `run(userMessage, systemPrompt, contextContent)`:
   - Abort any in-flight `AbortController`
   - Build messages: `[...history, { role: 'user', content: '<document>\n{ctx}\n</document>\n\n{userMessage}' }]`
   - Reset `output`, `error`; set `loading: true`
-  - Iterate `streamAI`, accumulate tokens into `output`
+  - Iterate `streamAI(messages, systemPrompt, provider, apiKey, signal)`, accumulate tokens into `output`
   - On completion: push user + assistant messages to `history`
-  - On `AbortError`: swallow silently
-  - On other error: set `error`
-  - Always: set `loading: false`
-- [ ] `P3.4.3` `stop()` — call `abortController.abort()`
-- [ ] `P3.4.4` `clearHistory()` — reset `history` to `[]`
+  - On `AbortError`: swallow silently; on other error: set `error`; always: set `loading: false`
+- [ ] `P3.5.5` `stop()` — call `abortController.abort()`
+- [ ] `P3.5.6` `clearHistory()` — reset `history` to `[]`
 
-### 3.5 — Scope context builder (`lib/ai.ts` or `hooks/useAI.ts`)
-- [ ] `P3.5.1` `buildContext(scope, activeFileId): Promise<string>`
-- [ ] `P3.5.2` `'file'` → `readFile(activeFileId)`
-- [ ] `P3.5.3` `'folder'` → list all `.md` files in the active file's parent folder, read each, join with `\n\n---\n\n# {filename}\n\n`
-- [ ] `P3.5.4` `'all'` → walk entire OPFS tree, read all `.md` files, same join format
-- [ ] `P3.5.5` Estimate token count (chars / 4); if > 100 000, prompt user with a warning modal before proceeding
+### 3.6 — Scope context builder (`lib/ai.ts` or `hooks/useAI.ts`)
+- [ ] `P3.6.1` `buildContext(scope, activeFileId): Promise<string>`
+- [ ] `P3.6.2` `'file'` → `readFile(activeFileId)`
+- [ ] `P3.6.3` `'folder'` → list all `.md` files in the active file's parent folder, read each, join with `\n\n---\n\n# {filename}\n\n`
+- [ ] `P3.6.4` `'all'` → walk entire OPFS tree, read all `.md` files, same join format
+- [ ] `P3.6.5` Estimate token count (chars / 4); if > 100 000, prompt user with a warning modal before proceeding
 
-### 3.6 — Prompt templates (`lib/prompts.ts`)
-- [ ] `P3.6.1` Define `SYSTEM_BASE` string
-- [ ] `P3.6.2` Define `PROMPTS` map with 6 keys: `'Action items'`, `'Decisions'`, `'Questions'`, `'Timeline'`, `'Summary'`, `'Next steps'`
-- [ ] `P3.6.3` Each value is `SYSTEM_BASE` + task-specific extraction instruction
-- [ ] `P3.6.4` Export both `SYSTEM_BASE` and `PROMPTS`
+### 3.7 — Prompt templates (`lib/prompts.ts`)
+- [ ] `P3.7.1` Define `SYSTEM_BASE` string
+- [ ] `P3.7.2` Define `PROMPTS` map with 6 keys: `'Action items'`, `'Decisions'`, `'Questions'`, `'Timeline'`, `'Summary'`, `'Next steps'`
+- [ ] `P3.7.3` Each value is `SYSTEM_BASE` + task-specific extraction instruction
+- [ ] `P3.7.4` Export both `SYSTEM_BASE` and `PROMPTS`
 
-### 3.7 — ScopeSelector component (`components/ai/ScopeSelector.tsx`)
-- [ ] `P3.7.1` Render 3 pill buttons: File / Folder / All
-- [ ] `P3.7.2` Active: `#0066FF` bg, white Funnel Sans 11px 600 text
-- [ ] `P3.7.3` Inactive: transparent bg, Funnel Sans 11px `#666666` text
-- [ ] `P3.7.4` `4px` border radius on each pill
-- [ ] `P3.7.5` Call `onChange(scope)` on click
+### 3.8 — ScopeSelector component (`components/ai/ScopeSelector.tsx`)
+- [ ] `P3.8.1` Render 3 pill buttons: File / Folder / All
+- [ ] `P3.8.2` Active: `#0066FF` bg, white Funnel Sans 11px 600 text
+- [ ] `P3.8.3` Inactive: transparent bg, Funnel Sans 11px `#666666` text
+- [ ] `P3.8.4` `4px` border radius on each pill
+- [ ] `P3.8.5` Call `onChange(scope)` on click
 
-### 3.8 — QuickActions component (`components/ai/QuickActions.tsx`)
-- [ ] `P3.8.1` Render horizontal scrollable chip row (no wrapping)
-- [ ] `P3.8.2` 6 chips: Action items · Decisions · Questions · Timeline · Summary · Next steps
-- [ ] `P3.8.3` Chip style: Funnel Sans 11px `#666666`, `#F5F5F5` bg, `#E5E5E5` border, `4px` radius, `4px 8px` padding
-- [ ] `P3.8.4` On click: set selected chip (highlighted with `#EBF0FF` bg + `#0066FF` text), call `onSelect(promptKey)`
+### 3.9 — QuickActions component (`components/ai/QuickActions.tsx`)
+- [ ] `P3.9.1` Render horizontal scrollable chip row (no wrapping)
+- [ ] `P3.9.2` 6 chips: Action items · Decisions · Questions · Timeline · Summary · Next steps
+- [ ] `P3.9.3` Chip style: Funnel Sans 11px `#666666`, `#F5F5F5` bg, `#E5E5E5` border, `4px` radius, `4px 8px` padding
+- [ ] `P3.9.4` On click: set selected chip (highlighted with `#EBF0FF` bg + `#0066FF` text), call `onSelect(promptKey)`
 
-### 3.9 — AIStream component (`components/ai/AIStream.tsx`)
-- [ ] `P3.9.1` Accept `content: string` prop (streaming markdown output)
-- [ ] `P3.9.2` Re-run unified+mermaid pipeline on each content update (debounce 100ms to avoid thrashing)
-- [ ] `P3.9.3` Show 3-dot pulse animation when `loading === true` and `content === ''` (before first token)
-- [ ] `P3.9.4` Render result as `dangerouslySetInnerHTML` inside a `prose`-classed div
+### 3.10 — AIStream component (`components/ai/AIStream.tsx`)
+- [ ] `P3.10.1` Accept `content: string` prop (streaming markdown output)
+- [ ] `P3.10.2` Re-run unified+mermaid pipeline on each content update (debounce 100ms to avoid thrashing)
+- [ ] `P3.10.3` Show 3-dot pulse animation when `loading === true` and `content === ''` (before first token)
+- [ ] `P3.10.4` Render result as `dangerouslySetInnerHTML` inside a `prose`-classed div (sanitize — see review notes)
 
-### 3.10 — AIPanel component (`components/ai/AIPanel.tsx`)
-- [ ] `P3.10.1` Header: "AI Assistant" (Inter 600 13px `#1A1A1A`) + `<ScopeSelector>` on the right
-- [ ] `P3.10.2` Header border-bottom: `1px #E5E5E5`; `0 1px 4px #00000008` shadow
-- [ ] `P3.10.3` `<QuickActions>` row below header; border-bottom `1px #E5E5E5`
-- [ ] `P3.10.4` Prompt input: Geist 12px, `#F5F5F5` bg, `#E5E5E5` border, `6px` radius, placeholder "Optional: add focus or constraints…"
-- [ ] `P3.10.5` `⚡ Summarize` button: Inter 600 12px, `#0066FF` bg, white text, `4px` radius — triggers `run()` with selected scope + quick-action prompt
-- [ ] `P3.10.6` Stream badge (when loading/done): green dot + Funnel Sans 11px "Action items · Folder scope · N files"
-- [ ] `P3.10.7` `<AIStream>` output area, `overflow-y: auto`, flex-grows to fill remaining height
-- [ ] `P3.10.8` Chat input row at bottom: Geist placeholder "Ask a question…", `↑` send button (`#0066FF`, `6px` radius)
-- [ ] `P3.10.9` Hint row: Funnel Sans 10px `#999999` — "Esc to stop · ⌘/ toggle panel · ⌘K search"
-- [ ] `P3.10.10` Wire Escape key to `stop()`; wire send button and Enter key to `run()` with chat message
-- [ ] `P3.10.11` `clearHistory()` button accessible via a small icon or right-click
+### 3.11 — AIPanel component (`components/ai/AIPanel.tsx`)
+- [ ] `P3.11.1` Header: "AI Assistant" (Inter 600 13px `#1A1A1A`) + `<ScopeSelector>` on the right
+- [ ] `P3.11.2` Header border-bottom: `1px #E5E5E5`; `0 1px 4px #00000008` shadow
+- [ ] `P3.11.3` `<QuickActions>` row below header; border-bottom `1px #E5E5E5`
+- [ ] `P3.11.4` Prompt input: Geist 12px, `#F5F5F5` bg, `#E5E5E5` border, `6px` radius, placeholder "Optional: add focus or constraints…"
+- [ ] `P3.11.5` `⚡ Summarize` button: Inter 600 12px, `#0066FF` bg, white text, `4px` radius — triggers `run()` with selected scope + quick-action prompt
+- [ ] `P3.11.6` Stream badge (when loading/done): green dot + Funnel Sans 11px showing **active provider · model · scope · N files** (e.g. "Local — Ollama · llama3.1:8b · Folder · 3 files")
+- [ ] `P3.11.7` When the active provider is unset or missing a required key, show a "Configure AI" link that opens `<SettingsModal>`
+- [ ] `P3.11.8` `<AIStream>` output area, `overflow-y: auto`, flex-grows to fill remaining height
+- [ ] `P3.11.9` Chat input row at bottom: Geist placeholder "Ask a question…", `↑` send button (`#0066FF`, `6px` radius)
+- [ ] `P3.11.10` Hint row: Funnel Sans 10px `#999999` — "Esc to stop · ⌘/ toggle panel · ⌘K search"
+- [ ] `P3.11.11` Wire Escape key to `stop()`; wire send button and Enter key to `run()` with chat message
+- [ ] `P3.11.12` `clearHistory()` button accessible via a small icon or right-click
 
-**✓ Phase 3 done when:** Paste a transcript, click "Action items", see a streamed checklist within 2–3 s of first token.
+### 3.12 — Settings modal (`components/settings/SettingsModal.tsx`)
+- [ ] `P3.12.1` Open from a ⚙ icon (sidebar footer / top bar) or `⌘,`; Minimal Ink styling, `12px` radius, Soft Cloud shadow
+- [ ] `P3.12.2` "PROVIDER" section: radio cards for each `ProviderConfig` (Folio Cloud · Anthropic · OpenAI · Local — Ollama …); selected = `2px #0066FF` + `#EBF0FF` bg
+- [ ] `P3.12.3` `+ Add local` ghost button → spawns a new editable `local` card with a uuid id
+- [ ] `P3.12.4` "CONFIGURATION" fields: dialect pills (Anthropic / OpenAI), Base URL + Model + Max tokens (Geist Mono); cloud cards lock `baseUrl`/`dialect`
+- [ ] `P3.12.5` API key field: password input + show/hide toggle; hidden for `proxy` and keyless `local`; note "Stored in your browser (localStorage)"
+- [ ] `P3.12.6` Test connection: 1-token non-streaming probe to the configured endpoint; report latency on success or the error string (catches 401 / CORS / wrong base URL)
+- [ ] `P3.12.7` Save → write configs to `folio.ai.settings`, keys to `folio.ai.keys`, set active provider, close; Cancel discards
+- [ ] `P3.12.8` Empty/error hint for `local` mode links CORS setup (Ollama `OLLAMA_ORIGINS`; LM Studio CORS toggle)
+- [ ] `P3.12.9` Component tests: card select swaps editable fields; key field hidden for `proxy`; Save persists; Test reports success/error
+
+**✓ Phase 3 done when:** Pick a provider in Settings (Proxy / BYOK / Local), paste a transcript, click "Action items", and see a streamed checklist within 2–3 s — with the stream badge naming which provider ran.
 
 ---
 
@@ -468,7 +495,7 @@
 |---|---|---|
 | 1 — Skeleton + editor | 1.1–1.8 | ✅ Done |
 | 2 — OPFS + file tree | 2.1–2.8 | ✅ Done |
-| 3 — AI proxy + streaming | 3.1–3.10 | ⬜ Not started |
+| 3 — AI provider layer + streaming | 3.1–3.12 | ⬜ Not started |
 | 4 — Search + metadata + cache | 4.1–4.7 | ⬜ Not started |
 | 5 — Audio + transcription | 5.1–5.4 | ⬜ Not started |
 | 6 — Export | 6.1–6.3 | ⬜ Not started |

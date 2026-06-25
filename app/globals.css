@@ -1,0 +1,243 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* ───────────────────────────────────────────────────────────────
+   Folio — Minimal Ink design tokens
+   Single source of truth for color, type, radius, and shadow.
+   Tailwind v4: every token below is emitted to :root AND generates a
+   matching utility (bg-surface-primary, text-fg-primary, rounded-card…).
+   ─────────────────────────────────────────────────────────────── */
+@theme inline {
+  /* Surfaces */
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #f5f5f5;
+  --color-surface-tertiary: #fafafa;
+
+  /* Foreground */
+  --color-fg-primary: #1a1a1a;
+  --color-fg-secondary: #666666;
+  --color-fg-muted: #999999;
+
+  /* Accent */
+  --color-accent: #0066ff;
+  --color-accent-light: #ebf0ff;
+
+  /* Lines + status */
+  --color-border: #e5e5e5;
+  --color-success: #16a34a;
+  --color-error: #991b1b;
+  --color-error-bg: #fef2f2;
+
+  /* Radius — 4px chips · 6px inputs · 8px cards · 12px modals */
+  --radius-chip: 4px;
+  --radius-input: 6px;
+  --radius-card: 8px;
+  --radius-modal: 12px;
+
+  /* Shadows — Soft Cloud */
+  --shadow-panel: 0 1px 4px #00000008;
+  --shadow-modal: 0 2px 4px #00000008, 0 12px 32px #0000000f;
+
+  /* Type — Inter headings / Geist body / Funnel Sans captions / Geist Mono */
+  --font-heading: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-caption: var(--font-funnel), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, sfmono-regular, monospace;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-surface-primary);
+  color: var(--color-fg-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings default to Inter via the heading font family utility. */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* ── AppShell grid (3-panel on desktop, single column on mobile) ──
+   Column widths are driven by CSS vars set inline from the Zustand store,
+   so the template can be overridden per-breakpoint without JS. */
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1px 1fr;
+  height: 100%;
+  width: 100%;
+}
+.app-shell[data-ai="true"] {
+  grid-template-columns: var(--sidebar-w) 1px 1fr 1px var(--aipanel-w);
+}
+@media (max-width: 767px) {
+  .app-shell,
+  .app-shell[data-ai="true"] {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+}
+
+/* ── Mermaid diagrams (rendered into <div class="mermaid-diagram">) ── */
+.mermaid-diagram {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  background: var(--color-surface-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  margin: 12px 0;
+}
+
+.mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Markdown preview typography (.folio-prose) ──
+   Minimal Ink-flavoured prose: Geist body, Inter headings, accent links,
+   soft code blocks. Tuned to the design tokens rather than the default
+   Tailwind Typography palette. */
+.folio-prose {
+  color: var(--color-fg-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.7;
+  word-wrap: break-word;
+}
+.folio-prose > :first-child {
+  margin-top: 0;
+}
+.folio-prose h1,
+.folio-prose h2,
+.folio-prose h3,
+.folio-prose h4,
+.folio-prose h5,
+.folio-prose h6 {
+  font-family: var(--font-heading);
+  color: var(--color-fg-primary);
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.6em 0 0.6em;
+}
+.folio-prose h1 { font-size: 1.9em; }
+.folio-prose h2 { font-size: 1.5em; }
+.folio-prose h3 { font-size: 1.25em; }
+.folio-prose h4,
+.folio-prose h5,
+.folio-prose h6 { font-size: 1.05em; }
+.folio-prose p,
+.folio-prose ul,
+.folio-prose ol,
+.folio-prose blockquote,
+.folio-prose table,
+.folio-prose pre {
+  margin: 0.9em 0;
+}
+.folio-prose a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.folio-prose strong {
+  color: var(--color-fg-primary);
+  font-weight: 600;
+}
+.folio-prose ul,
+.folio-prose ol {
+  padding-left: 1.5em;
+}
+.folio-prose ul { list-style: disc; }
+.folio-prose ol { list-style: decimal; }
+.folio-prose li {
+  margin: 0.3em 0;
+}
+.folio-prose li::marker {
+  color: var(--color-fg-muted);
+}
+.folio-prose blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 1em;
+  color: var(--color-fg-secondary);
+  font-style: normal;
+}
+.folio-prose code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-chip);
+  padding: 0.1em 0.4em;
+}
+.folio-prose pre {
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  overflow-x: auto;
+}
+.folio-prose pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.6;
+}
+.folio-prose hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: 1.8em 0;
+}
+.folio-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92em;
+}
+.folio-prose th,
+.folio-prose td {
+  border: 1px solid var(--color-border);
+  padding: 8px 12px;
+  text-align: left;
+}
+.folio-prose th {
+  background: var(--color-surface-tertiary);
+  font-weight: 600;
+}
+.folio-prose img {
+  max-width: 100%;
+  border-radius: var(--radius-card);
+}
+/* Syntax highlighting (rehype-highlight / highlight.js token classes) */
+.folio-prose .hljs-comment,
+.folio-prose .hljs-quote { color: var(--color-fg-muted); font-style: italic; }
+.folio-prose .hljs-keyword,
+.folio-prose .hljs-selector-tag,
+.folio-prose .hljs-built_in,
+.folio-prose .hljs-name,
+.folio-prose .hljs-tag { color: var(--color-accent); }
+.folio-prose .hljs-string,
+.folio-prose .hljs-attr { color: #16a34a; }
+.folio-prose .hljs-number,
+.folio-prose .hljs-literal { color: #c2410c; }
+
+/* Thin, unobtrusive scrollbars to match the minimal aesthetic. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-fg-muted);
+}

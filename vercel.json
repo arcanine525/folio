@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "app/api/ai/route.ts": { "maxDuration": 60 },
+    "app/api/transcribe/route.ts": { "maxDuration": 120 }
+  }
+}

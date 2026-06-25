@@ -104,10 +104,10 @@
 - [x] `P2.2.7` Return `{ tree, loading, refresh, createFile, createFolder, deleteNode, renameNode }`
 
 ### 2.3 — FileTree component (`components/filetree/FileTree.tsx`)
-- [ ] `P2.3.1` Render list of `FSNode[]` recursively — folders rendered before files at each level
-- [ ] `P2.3.2` Pass `depth` prop down for left-padding calculation (`depth * 14px`)
-- [ ] `P2.3.3` Show folder expand/collapse chevron; toggle on click (local component state)
-- [ ] `P2.3.4` Render `FileTreeItem` for each node
+- [x] `P2.3.1` Render list of `FSNode[]` recursively — folders rendered before files at each level
+- [x] `P2.3.2` Pass `depth` prop down for left-padding calculation (`depth * 14px`)
+- [x] `P2.3.3` Show folder expand/collapse chevron; toggle on click (local component state)
+- [x] `P2.3.4` Render `FileTreeItem` for each node
 
 ### 2.4 — FileTreeItem component (`components/filetree/FileTreeItem.tsx`)
 - [x] `P2.4.1` Left-click → call `setActiveFile(node.id)`, read file content from OPFS, call `setContent()`

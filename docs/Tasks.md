@@ -270,11 +270,11 @@
 > Goal: ⌘K live search. Tags from frontmatter. Word count in toolbar. AI cache.
 
 ### 4.1 — IndexedDB (`lib/indexeddb.ts`)
-- [ ] `P4.1.1` Open (or upgrade) database `folio-meta` version 1
-- [ ] `P4.1.2` Create object store `file-meta` with `keyPath: 'path'`; fields: `path`, `wordCount`, `readingTimeSeconds`, `lastModified`, `tags`
-- [ ] `P4.1.3` Create object store `ai-cache` with `keyPath: 'cacheKey'`; fields: `cacheKey`, `response`, `createdAt`
-- [ ] `P4.1.4` On DB open: evict `ai-cache` entries where `Date.now() - createdAt > 7 * 86400 * 1000`
-- [ ] `P4.1.5` Export typed helpers: `getMeta(path)`, `setMeta(meta)`, `getCache(key)`, `setCache(key, response)`, `deleteCache(key)`, `getAllMeta()`
+- [x] `P4.1.1` Open (or upgrade) database `folio-meta` version 1
+- [x] `P4.1.2` Create object store `file-meta` with `keyPath: 'path'`; fields: `path`, `wordCount`, `readingTimeSeconds`, `lastModified`, `tags`
+- [x] `P4.1.3` Create object store `ai-cache` with `keyPath: 'cacheKey'`; fields: `cacheKey`, `response`, `createdAt`
+- [x] `P4.1.4` On DB open: evict `ai-cache` entries where `Date.now() - createdAt > 7 * 86400 * 1000`
+- [x] `P4.1.5` Export typed helpers: `getMeta(path)`, `setMeta(meta)`, `getCache(key)`, `setCache(key, response)`, `deleteCache(key)`, `getAllMeta()`
 
 ### 4.2 — File metadata computation
 - [ ] `P4.2.1` In `hooks/useEditor.ts`: after each successful `writeFile`, compute `{ wordCount, readingTimeSeconds: ceil(words/4), lastModified: Date.now(), tags }`

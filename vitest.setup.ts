@@ -25,5 +25,9 @@ if (!window.matchMedia) {
 // in __mocks__/opfs.ts installs the globals before any test imports lib/opfs.
 import "@/__mocks__/opfs";
 
+// IndexedDB is also absent in jsdom. __mocks__/indexeddb.ts installs the
+// `indexedDB` global before any test imports lib/indexeddb.
+import "@/__mocks__/indexeddb";
+
 // Run component/hook tests in React's act() environment.
 vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);

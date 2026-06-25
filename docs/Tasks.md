@@ -496,7 +496,7 @@
 | 1 — Skeleton + editor | 1.1–1.8 | ✅ Done |
 | 2 — OPFS + file tree | 2.1–2.8 | ✅ Done |
 | 3 — AI provider layer + streaming | 3.1–3.12 | ✅ Done |
-| 4 — Search + metadata + cache | 4.1–4.7 | ⬜ Not started |
+| 4 — Search + metadata + cache | 4.1–4.7 | ✅ Done |
 | 5 — Audio + transcription | 5.1–5.4 | ⬜ Not started |
 | 6 — Export | 6.1–6.3 | ⬜ Not started |
 | 7 — Polish + reliability | 7.1–7.6 | ⬜ Not started |

@@ -290,13 +290,13 @@
 - [x] `P4.3.4` Tag autocomplete: when editing frontmatter, suggest all known tags from `getAllMeta()`
 
 ### 4.4 — Flexsearch worker (`lib/search-worker.ts`)
-- [ ] `P4.4.1` Mark file with `/* webworker */` comment; configure Next.js webpack to handle worker build
-- [ ] `P4.4.2` Create `FlexSearch.Document` with `{ document: { id: 'path', index: ['name', 'content'] }, tokenize: 'forward' }`
-- [ ] `P4.4.3` Handle `{ type: 'index', payload: FSNode[] }` → bulk `index.add()` each file's `{ path, name, content }`
-- [ ] `P4.4.4` Handle `{ type: 'search', payload: { query, filter? } }` → `index.search(query, { limit: 20, enrich: true })` → `postMessage({ type: 'results', payload })`
-- [ ] `P4.4.5` Handle `{ type: 'update', payload: { path, name, content } }` → `index.update()`
-- [ ] `P4.4.6` Handle `{ type: 'remove', payload: path }` → `index.remove(path)`
-- [ ] `P4.4.7` Post `{ type: 'indexed' }` after bulk indexing completes
+- [x] `P4.4.1` Mark file with `/* webworker */` comment; configure Next.js webpack to handle worker build
+- [x] `P4.4.2` Create `FlexSearch.Document` with `{ document: { id: 'path', index: ['name', 'content'] }, tokenize: 'forward' }`
+- [x] `P4.4.3` Handle `{ type: 'index', payload: FSNode[] }` → bulk `index.add()` each file's `{ path, name, content }`
+- [x] `P4.4.4` Handle `{ type: 'search', payload: { query, filter? } }` → `index.search(query, { limit: 20, enrich: true })` → `postMessage({ type: 'results', payload })`
+- [x] `P4.4.5` Handle `{ type: 'update', payload: { path, name, content } }` → `index.update()`
+- [x] `P4.4.6` Handle `{ type: 'remove', payload: path }` → `index.remove(path)`
+- [x] `P4.4.7` Post `{ type: 'indexed' }` after bulk indexing completes
 
 ### 4.5 — Search hook (`hooks/useSearch.ts`)
 - [ ] `P4.5.1` Create `Worker` from `search-worker.ts` once on mount; terminate on unmount

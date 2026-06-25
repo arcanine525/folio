@@ -95,13 +95,13 @@
 - [x] `P2.1.9` Export all functions from `lib/opfs.ts`
 
 ### 2.2 — File tree hook (`hooks/useFileTree.ts`)
-- [ ] `P2.2.1` `refresh()` — call `listTree()`, write result to Zustand `tree`, set `loading: false`
-- [ ] `P2.2.2` Call `refresh()` once on mount (triggers initial OPFS scan)
-- [ ] `P2.2.3` `createFile(path)` — `writeFile(path, defaultContent)` → `refresh()` → return path
-- [ ] `P2.2.4` `createFolder(path)` — `opfsCreateFolder(path)` → `refresh()`
-- [ ] `P2.2.5` `deleteNode(node)` — branch on `node.type`, call file or folder delete → `refresh()`
-- [ ] `P2.2.6` `renameNode(node, newName)` — `renameEntry()` → `refresh()` → return new path
-- [ ] `P2.2.7` Return `{ tree, loading, refresh, createFile, createFolder, deleteNode, renameNode }`
+- [x] `P2.2.1` `refresh()` — call `listTree()`, write result to Zustand `tree`, set `loading: false`
+- [x] `P2.2.2` Call `refresh()` once on mount (triggers initial OPFS scan)
+- [x] `P2.2.3` `createFile(path)` — `writeFile(path, defaultContent)` → `refresh()` → return path
+- [x] `P2.2.4` `createFolder(path)` — `opfsCreateFolder(path)` → `refresh()`
+- [x] `P2.2.5` `deleteNode(node)` — branch on `node.type`, call file or folder delete → `refresh()`
+- [x] `P2.2.6` `renameNode(node, newName)` — `renameEntry()` → `refresh()` → return new path
+- [x] `P2.2.7` Return `{ tree, loading, refresh, createFile, createFolder, deleteNode, renameNode }`
 
 ### 2.3 — FileTree component (`components/filetree/FileTree.tsx`)
 - [ ] `P2.3.1` Render list of `FSNode[]` recursively — folders rendered before files at each level

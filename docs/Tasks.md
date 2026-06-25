@@ -319,9 +319,9 @@
 - [x] `P4.6.10` On result select: close modal, `setActiveFile(path)`, load content
 
 ### 4.7 — AI response cache
-- [ ] `P4.7.1` In `hooks/useAI.ts`: before calling `streamAI`, compute cache key via `crypto.subtle.digest('SHA-256', encoder.encode(path + content + prompt))`
-- [ ] `P4.7.2` Check `getCache(key)`; if hit: replay response as synthetic stream (chunk into 20-char pieces at 20ms intervals via `setInterval`), skip API call
-- [ ] `P4.7.3` If miss: call API, accumulate full response, call `setCache(key, fullResponse)` on completion
+- [x] `P4.7.1` In `hooks/useAI.ts`: before calling `streamAI`, compute cache key via `crypto.subtle.digest('SHA-256', encoder.encode(path + content + prompt))`
+- [x] `P4.7.2` Check `getCache(key)`; if hit: replay response as synthetic stream (chunk into 20-char pieces at 20ms intervals via `setInterval`), skip API call
+- [x] `P4.7.3` If miss: call API, accumulate full response, call `setCache(key, fullResponse)` on completion
 
 **✓ Phase 4 done when:** ⌘K search returns live results across all files, tags appear in toolbar, repeated AI summaries are instant.
 

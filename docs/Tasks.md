@@ -84,15 +84,15 @@
 > Goal: Files survive page refresh. File tree mirrors OPFS. Autosave on every edit.
 
 ### 2.1 — OPFS primitives (`lib/opfs.ts`)
-- [ ] `P2.1.1` Cache root handle: call `navigator.storage.getDirectory()` once, store in module-level variable
-- [ ] `P2.1.2` Implement `readFile(path: string): Promise<string>` — resolve path parts, `getFile()`, `.text()`
-- [ ] `P2.1.3` Implement `writeFile(path: string, content: string): Promise<void>` — resolve dirs with `{ create: true }`, `createWritable()`, write, close
-- [ ] `P2.1.4` Implement `deleteFile(path: string): Promise<void>`
-- [ ] `P2.1.5` Implement `createFolder(path: string): Promise<void>` — resolve all path parts with `{ create: true }`
-- [ ] `P2.1.6` Implement `deleteFolder(path: string): Promise<void>` — `removeEntry(name, { recursive: true })`
-- [ ] `P2.1.7` Implement `renameEntry(oldPath: string, newName: string): Promise<string>` — copy content to new path, delete old path, return new path
-- [ ] `P2.1.8` Implement `listTree(dir?, prefix?): Promise<FSNode[]>` — recurse via `dir.entries()`, sort folders first then alpha
-- [ ] `P2.1.9` Export all functions from `lib/opfs.ts`
+- [x] `P2.1.1` Cache root handle: call `navigator.storage.getDirectory()` once, store in module-level variable
+- [x] `P2.1.2` Implement `readFile(path: string): Promise<string>` — resolve path parts, `getFile()`, `.text()`
+- [x] `P2.1.3` Implement `writeFile(path: string, content: string): Promise<void>` — resolve dirs with `{ create: true }`, `createWritable()`, write, close
+- [x] `P2.1.4` Implement `deleteFile(path: string): Promise<void>`
+- [x] `P2.1.5` Implement `createFolder(path: string): Promise<void>` — resolve all path parts with `{ create: true }`
+- [x] `P2.1.6` Implement `deleteFolder(path: string): Promise<void>` — `removeEntry(name, { recursive: true })`
+- [x] `P2.1.7` Implement `renameEntry(oldPath: string, newName: string): Promise<string>` — copy content to new path, delete old path, return new path
+- [x] `P2.1.8` Implement `listTree(dir?, prefix?): Promise<FSNode[]>` — recurse via `dir.entries()`, sort folders first then alpha
+- [x] `P2.1.9` Export all functions from `lib/opfs.ts`
 
 ### 2.2 — File tree hook (`hooks/useFileTree.ts`)
 - [ ] `P2.2.1` `refresh()` — call `listTree()`, write result to Zustand `tree`, set `loading: false`
@@ -467,7 +467,7 @@
 | Phase | Tasks | Status |
 |---|---|---|
 | 1 — Skeleton + editor | 1.1–1.8 | ✅ Done |
-| 2 — OPFS + file tree | 2.1–2.8 | ⬜ Not started |
+| 2 — OPFS + file tree | 2.1–2.8 | 🟡 In progress |
 | 3 — AI proxy + streaming | 3.1–3.10 | ⬜ Not started |
 | 4 — Search + metadata + cache | 4.1–4.7 | ⬜ Not started |
 | 5 — Audio + transcription | 5.1–5.4 | ⬜ Not started |

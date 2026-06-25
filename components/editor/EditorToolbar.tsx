@@ -4,6 +4,7 @@ import { type MutableRefObject } from "react";
 import { EditorView } from "@codemirror/view";
 import { useAppStore } from "@/store/appStore";
 import type { EditorMode } from "@/store/appStore";
+import { extractTags } from "@/lib/metadata";
 
 interface EditorToolbarProps {
   /** Current buffer content, used as a fallback for the word count + reading time. */
@@ -98,6 +99,10 @@ export function EditorToolbar({
 }: EditorToolbarProps) {
   const editorMode = useAppStore((s) => s.editorMode);
   const setEditorMode = useAppStore((s) => s.setEditorMode);
+  const openSearch = useAppStore((s) => s.openSearch);
+
+  // P4.3.1: tags parsed from frontmatter on each render of the active file.
+  const tags = wordCount != null ? extractTags(content) : [];
 
   // P4.2.5: prefer live values from useEditor; fall back to a local count
   // (e.g. the welcome doc, which has no active file → no hook metadata).
@@ -123,6 +128,23 @@ export function EditorToolbar({
           </button>
         ))}
       </div>
+
+      {/* Frontmatter tag pills (P4.3.2/3) */}
+      {tags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1">
+          {tags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => openSearch(`#${tag}`)}
+              title={`Search for #${tag}`}
+              className="font-caption rounded-chip bg-accent-light px-1.5 py-0.5 text-[11px] font-medium text-accent transition-opacity hover:opacity-80"
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* View mode toggle + meta */}
       <div className="flex items-center gap-3">

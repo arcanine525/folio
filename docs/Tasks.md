@@ -232,10 +232,10 @@
 - [x] `P3.9.4` On click: set selected chip (highlighted with `#EBF0FF` bg + `#0066FF` text), call `onSelect(promptKey)`
 
 ### 3.10 — AIStream component (`components/ai/AIStream.tsx`)
-- [ ] `P3.10.1` Accept `content: string` prop (streaming markdown output)
-- [ ] `P3.10.2` Re-run unified+mermaid pipeline on each content update (debounce 100ms to avoid thrashing)
-- [ ] `P3.10.3` Show 3-dot pulse animation when `loading === true` and `content === ''` (before first token)
-- [ ] `P3.10.4` Render result as `dangerouslySetInnerHTML` inside a `prose`-classed div (sanitize — see review notes)
+- [x] `P3.10.1` Accept `content: string` prop (streaming markdown output)
+- [x] `P3.10.2` Re-run unified+mermaid pipeline on each content update (debounce 100ms to avoid thrashing)
+- [x] `P3.10.3` Show 3-dot pulse animation when `loading === true` and `content === ''` (before first token)
+- [x] `P3.10.4` Render result as `dangerouslySetInnerHTML` inside a `prose`-classed div (sanitize — see review notes)
 
 ### 3.11 — AIPanel component (`components/ai/AIPanel.tsx`)
 - [ ] `P3.11.1` Header: "AI Assistant" (Inter 600 13px `#1A1A1A`) + `<ScopeSelector>` on the right

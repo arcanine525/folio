@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { EditorView } from "@codemirror/view";
 import { AppShell } from "@/components/layout/AppShell";
 import { Editor } from "@/components/editor/Editor";
 import { Preview } from "@/components/editor/Preview";
 import { EditorToolbar } from "@/components/editor/EditorToolbar";
+import { SettingsModal } from "@/components/settings/SettingsModal";
 import { useEditor } from "@/hooks/useEditor";
 import { useAppStore } from "@/store/appStore";
 
@@ -97,6 +98,8 @@ function EditorZone({ doc, onChange, viewRef, mode, dirty, saving }: EditorZoneP
 export default function Page() {
   const activeFileId = useAppStore((s) => s.activeFileId);
   const editorMode = useAppStore((s) => s.editorMode);
+  const settingsOpen = useAppStore((s) => s.settingsOpen);
+  const setSettingsOpen = useAppStore((s) => s.setSettingsOpen);
   const viewRef = useRef<EditorView | null>(null);
 
   // useEditor is the sole writer of `content` — it loads on file switch and
@@ -104,18 +107,33 @@ export default function Page() {
   const { content, handleChange, isDirty, saving } = useEditor();
   const doc = activeFileId ? content : WELCOME_DOC;
 
-  return (
-    <AppShell
-      editorZone={
-        <EditorZone
-          doc={doc}
-          onChange={handleChange}
-          viewRef={viewRef}
-          mode={editorMode}
-          dirty={isDirty}
-          saving={saving}
-        />
+  // ⌘, / Ctrl+, toggles the AI settings modal.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === ",") {
+        e.preventDefault();
+        setSettingsOpen(!settingsOpen);
       }
-    />
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [settingsOpen, setSettingsOpen]);
+
+  return (
+    <>
+      <AppShell
+        editorZone={
+          <EditorZone
+            doc={doc}
+            onChange={handleChange}
+            viewRef={viewRef}
+            mode={editorMode}
+            dirty={isDirty}
+            saving={saving}
+          />
+        }
+      />
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+    </>
   );
 }

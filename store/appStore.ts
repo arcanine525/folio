@@ -42,6 +42,9 @@ export interface AppState {
   aiPanelWidth: number;
   /** Editor pane layout. */
   editorMode: EditorMode;
+  /** Whether the AI settings modal is open (shared so the ⌘, shortcut, the
+   *  ⚙ button, and the AI panel's "Configure AI" link can all open it). */
+  settingsOpen: boolean;
 
   setTree: (tree: FSNode[]) => void;
   setActiveFile: (id: string | null) => void;
@@ -52,6 +55,7 @@ export interface AppState {
   setAiPanelOpen: (open: boolean) => void;
   toggleAiPanel: () => void;
   setEditorMode: (mode: EditorMode) => void;
+  setSettingsOpen: (open: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()((set, get) => ({
@@ -64,6 +68,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   aiPanelOpen: true,
   aiPanelWidth: readNumber(AIPANEL_KEY, DEFAULT_AIPANEL_WIDTH),
   editorMode: "split",
+  settingsOpen: false,
 
   setTree: (tree) => set({ tree }),
   setActiveFile: (activeFileId) => set({ activeFileId }),
@@ -82,4 +87,5 @@ export const useAppStore = create<AppState>()((set, get) => ({
   setAiPanelOpen: (aiPanelOpen) => set({ aiPanelOpen }),
   toggleAiPanel: () => set({ aiPanelOpen: !get().aiPanelOpen }),
   setEditorMode: (editorMode) => set({ editorMode }),
+  setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
 }));

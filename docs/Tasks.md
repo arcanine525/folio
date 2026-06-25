@@ -252,15 +252,15 @@
 - [ ] `P3.11.12` `clearHistory()` button accessible via a small icon or right-click
 
 ### 3.12 — Settings modal (`components/settings/SettingsModal.tsx`)
-- [ ] `P3.12.1` Open from a ⚙ icon (sidebar footer / top bar) or `⌘,`; Minimal Ink styling, `12px` radius, Soft Cloud shadow
-- [ ] `P3.12.2` "PROVIDER" section: radio cards for each `ProviderConfig` (Folio Cloud · Anthropic · OpenAI · Local — Ollama …); selected = `2px #0066FF` + `#EBF0FF` bg
-- [ ] `P3.12.3` `+ Add local` ghost button → spawns a new editable `local` card with a uuid id
-- [ ] `P3.12.4` "CONFIGURATION" fields: dialect pills (Anthropic / OpenAI), Base URL + Model + Max tokens (Geist Mono); cloud cards lock `baseUrl`/`dialect`
-- [ ] `P3.12.5` API key field: password input + show/hide toggle; hidden for `proxy` and keyless `local`; note "Stored in your browser (localStorage)"
-- [ ] `P3.12.6` Test connection: 1-token non-streaming probe to the configured endpoint; report latency on success or the error string (catches 401 / CORS / wrong base URL)
-- [ ] `P3.12.7` Save → write configs to `folio.ai.settings`, keys to `folio.ai.keys`, set active provider, close; Cancel discards
-- [ ] `P3.12.8` Empty/error hint for `local` mode links CORS setup (Ollama `OLLAMA_ORIGINS`; LM Studio CORS toggle)
-- [ ] `P3.12.9` Component tests: card select swaps editable fields; key field hidden for `proxy`; Save persists; Test reports success/error
+- [x] `P3.12.1` Open from a ⚙ icon (sidebar footer / top bar) or `⌘,`; Minimal Ink styling, `12px` radius, Soft Cloud shadow
+- [x] `P3.12.2` "PROVIDER" section: radio cards for each `ProviderConfig` (Folio Cloud · Anthropic · OpenAI · Local — Ollama …); selected = `2px #0066FF` + `#EBF0FF` bg
+- [x] `P3.12.3` `+ Add local` ghost button → spawns a new editable `local` card with a uuid id
+- [x] `P3.12.4` "CONFIGURATION" fields: dialect pills (Anthropic / OpenAI), Base URL + Model + Max tokens (Geist Mono); cloud cards lock `baseUrl`/`dialect`
+- [x] `P3.12.5` API key field: password input + show/hide toggle; hidden for `proxy` and keyless `local`; note "Stored in your browser (localStorage)"
+- [x] `P3.12.6` Test connection: 1-token non-streaming probe to the configured endpoint; report latency on success or the error string (catches 401 / CORS / wrong base URL)
+- [x] `P3.12.7` Save → write configs to `folio.ai.settings`, keys to `folio.ai.keys`, set active provider, close; Cancel discards
+- [x] `P3.12.8` Empty/error hint for `local` mode links CORS setup (Ollama `OLLAMA_ORIGINS`; LM Studio CORS toggle)
+- [x] `P3.12.9` Component tests: card select swaps editable fields; key field hidden for `proxy`; Save persists; Test reports success/error
 
 **✓ Phase 3 done when:** Pick a provider in Settings (Proxy / BYOK / Local), paste a transcript, click "Action items", and see a streamed checklist within 2–3 s — with the stream badge naming which provider ran.
 

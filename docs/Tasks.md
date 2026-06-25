@@ -226,10 +226,10 @@
 - [x] `P3.8.5` Call `onChange(scope)` on click
 
 ### 3.9 — QuickActions component (`components/ai/QuickActions.tsx`)
-- [ ] `P3.9.1` Render horizontal scrollable chip row (no wrapping)
-- [ ] `P3.9.2` 6 chips: Action items · Decisions · Questions · Timeline · Summary · Next steps
-- [ ] `P3.9.3` Chip style: Funnel Sans 11px `#666666`, `#F5F5F5` bg, `#E5E5E5` border, `4px` radius, `4px 8px` padding
-- [ ] `P3.9.4` On click: set selected chip (highlighted with `#EBF0FF` bg + `#0066FF` text), call `onSelect(promptKey)`
+- [x] `P3.9.1` Render horizontal scrollable chip row (no wrapping)
+- [x] `P3.9.2` 6 chips: Action items · Decisions · Questions · Timeline · Summary · Next steps
+- [x] `P3.9.3` Chip style: Funnel Sans 11px `#666666`, `#F5F5F5` bg, `#E5E5E5` border, `4px` radius, `4px 8px` padding
+- [x] `P3.9.4` On click: set selected chip (highlighted with `#EBF0FF` bg + `#0066FF` text), call `onSelect(promptKey)`
 
 ### 3.10 — AIStream component (`components/ai/AIStream.tsx`)
 - [ ] `P3.10.1` Accept `content: string` prop (streaming markdown output)

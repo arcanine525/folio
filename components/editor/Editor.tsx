@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useRef, type MutableRefObject } from "react";
+import { autocompletion, type CompletionContext, type CompletionResult } from "@codemirror/autocomplete";
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { basicSetup } from "codemirror";
 import { markdown } from "@codemirror/lang-markdown";
+import { getAllMeta } from "@/lib/indexeddb";
+import { suggestTags } from "@/lib/tagAutocomplete";
 
 interface EditorProps {
   value: string;
@@ -42,9 +45,40 @@ const editorTheme = EditorView.theme({
  *   `update.docChanged` (skips selection/viewport updates).
  * - External `value` changes (e.g. opening another file) are applied via
  *   `view.dispatch()` without tearing down and recreating the editor.
+ * - P4.3.4: a tag-autocomplete source offers known tags (from IndexedDB) when
+ *   the cursor is inside the frontmatter `tags:` value.
  *
  * `onChange` is kept in a ref so the mount effect never needs to re-run.
  */
+
+/**
+ * Autocompletion source: offer known tags when editing the `tags:` frontmatter.
+ * Delegates context detection to the pure `suggestTags` helper and reads the
+ * tag set from the `file-meta` store on each invocation so it stays fresh.
+ */
+async function tagCompletions(ctx: CompletionContext): Promise<CompletionResult | null> {
+  const word = ctx.matchBefore(/[\w-]+/);
+  if (!word) return null;
+  const doc = ctx.state.doc;
+  const lines = doc.toString().split("\n");
+  const lineNumber = doc.lineAt(ctx.pos).number;
+
+  let known: string[] = [];
+  try {
+    const all = await getAllMeta();
+    known = Array.from(new Set(all.flatMap((m) => m.tags)));
+  } catch {
+    /* no metadata yet — offer nothing */
+  }
+
+  const suggestions = suggestTags({ lines, lineNumber, partial: word.text }, known);
+  if (!suggestions || suggestions.length === 0) return null;
+  return {
+    from: word.from,
+    options: suggestions.map((label) => ({ label, type: "property" })),
+    validFor: /[\w-]+/,
+  };
+}
 export function Editor({ value, onChange, viewRef }: EditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const cmViewRef = useRef<EditorView | null>(null);
@@ -63,6 +97,7 @@ export function Editor({ value, onChange, viewRef }: EditorProps) {
           markdown(),
           editorTheme,
           EditorView.lineWrapping,
+          autocompletion({ override: [tagCompletions] }),
           EditorView.updateListener.of((update) => {
             if (update.docChanged) {
               onChangeRef.current(update.state.doc.toString());

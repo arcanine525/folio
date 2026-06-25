@@ -284,10 +284,10 @@
 - [x] `P4.2.5` Update `EditorToolbar` meta row to read live values from hook
 
 ### 4.3 — Frontmatter tag pills (`components/editor/EditorToolbar.tsx`)
-- [ ] `P4.3.1` Parse `tags` array from `gray-matter` on file load
-- [ ] `P4.3.2` Render each tag as a pill: Funnel Sans 11px `#0066FF`, `#EBF0FF` bg, `4px` radius
-- [ ] `P4.3.3` Clicking a tag opens search pre-filtered to that tag
-- [ ] `P4.3.4` Tag autocomplete: when editing frontmatter, suggest all known tags from `getAllMeta()`
+- [x] `P4.3.1` Parse `tags` array from `gray-matter` on file load
+- [x] `P4.3.2` Render each tag as a pill: Funnel Sans 11px `#0066FF`, `#EBF0FF` bg, `4px` radius
+- [x] `P4.3.3` Clicking a tag opens search pre-filtered to that tag
+- [x] `P4.3.4` Tag autocomplete: when editing frontmatter, suggest all known tags from `getAllMeta()`
 
 ### 4.4 — Flexsearch worker (`lib/search-worker.ts`)
 - [ ] `P4.4.1` Mark file with `/* webworker */` comment; configure Next.js webpack to handle worker build

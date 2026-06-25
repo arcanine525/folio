@@ -238,18 +238,18 @@
 - [x] `P3.10.4` Render result as `dangerouslySetInnerHTML` inside a `prose`-classed div (sanitize — see review notes)
 
 ### 3.11 — AIPanel component (`components/ai/AIPanel.tsx`)
-- [ ] `P3.11.1` Header: "AI Assistant" (Inter 600 13px `#1A1A1A`) + `<ScopeSelector>` on the right
-- [ ] `P3.11.2` Header border-bottom: `1px #E5E5E5`; `0 1px 4px #00000008` shadow
-- [ ] `P3.11.3` `<QuickActions>` row below header; border-bottom `1px #E5E5E5`
-- [ ] `P3.11.4` Prompt input: Geist 12px, `#F5F5F5` bg, `#E5E5E5` border, `6px` radius, placeholder "Optional: add focus or constraints…"
-- [ ] `P3.11.5` `⚡ Summarize` button: Inter 600 12px, `#0066FF` bg, white text, `4px` radius — triggers `run()` with selected scope + quick-action prompt
-- [ ] `P3.11.6` Stream badge (when loading/done): green dot + Funnel Sans 11px showing **active provider · model · scope · N files** (e.g. "Local — Ollama · llama3.1:8b · Folder · 3 files")
-- [ ] `P3.11.7` When the active provider is unset or missing a required key, show a "Configure AI" link that opens `<SettingsModal>`
-- [ ] `P3.11.8` `<AIStream>` output area, `overflow-y: auto`, flex-grows to fill remaining height
-- [ ] `P3.11.9` Chat input row at bottom: Geist placeholder "Ask a question…", `↑` send button (`#0066FF`, `6px` radius)
-- [ ] `P3.11.10` Hint row: Funnel Sans 10px `#999999` — "Esc to stop · ⌘/ toggle panel · ⌘K search"
-- [ ] `P3.11.11` Wire Escape key to `stop()`; wire send button and Enter key to `run()` with chat message
-- [ ] `P3.11.12` `clearHistory()` button accessible via a small icon or right-click
+- [x] `P3.11.1` Header: "AI Assistant" (Inter 600 13px `#1A1A1A`) + `<ScopeSelector>` on the right
+- [x] `P3.11.2` Header border-bottom: `1px #E5E5E5`; `0 1px 4px #00000008` shadow
+- [x] `P3.11.3` `<QuickActions>` row below header; border-bottom `1px #E5E5E5`
+- [x] `P3.11.4` Prompt input: Geist 12px, `#F5F5F5` bg, `#E5E5E5` border, `6px` radius, placeholder "Optional: add focus or constraints…"
+- [x] `P3.11.5` `⚡ Summarize` button: Inter 600 12px, `#0066FF` bg, white text, `4px` radius — triggers `run()` with selected scope + quick-action prompt
+- [x] `P3.11.6` Stream badge (when loading/done): green dot + Funnel Sans 11px showing **active provider · model · scope · N files** (e.g. "Local — Ollama · llama3.1:8b · Folder · 3 files")
+- [x] `P3.11.7` When the active provider is unset or missing a required key, show a "Configure AI" link that opens `<SettingsModal>`
+- [x] `P3.11.8` `<AIStream>` output area, `overflow-y: auto`, flex-grows to fill remaining height
+- [x] `P3.11.9` Chat input row at bottom: Geist placeholder "Ask a question…", `↑` send button (`#0066FF`, `6px` radius)
+- [x] `P3.11.10` Hint row: Funnel Sans 10px `#999999` — "Esc to stop · ⌘/ toggle panel · ⌘K search"
+- [x] `P3.11.11` Wire Escape key to `stop()`; wire send button and Enter key to `run()` with chat message
+- [x] `P3.11.12` `clearHistory()` button accessible via a small icon or right-click
 
 ### 3.12 — Settings modal (`components/settings/SettingsModal.tsx`)
 - [x] `P3.12.1` Open from a ⚙ icon (sidebar footer / top bar) or `⌘,`; Minimal Ink styling, `12px` radius, Soft Cloud shadow

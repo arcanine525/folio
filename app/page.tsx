@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Editor } from "@/components/editor/Editor";
 import { Preview } from "@/components/editor/Preview";
 import { EditorToolbar } from "@/components/editor/EditorToolbar";
+import { AIPanel } from "@/components/ai/AIPanel";
 import { SettingsModal } from "@/components/settings/SettingsModal";
 import { useEditor } from "@/hooks/useEditor";
 import { useAppStore } from "@/store/appStore";
@@ -132,6 +133,7 @@ export default function Page() {
             saving={saving}
           />
         }
+        aiPanel={<AIPanel />}
       />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </>

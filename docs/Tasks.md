@@ -307,16 +307,16 @@
 - [x] `P4.5.6` Return `{ results, search, loading }`
 
 ### 4.6 — SearchModal component (`components/search/SearchModal.tsx`)
-- [ ] `P4.6.1` Open on ⌘K / Ctrl+K; close on Escape or backdrop click
-- [ ] `P4.6.2` Backdrop: `rgba(0,0,0,0.4)`; modal: `#FFFFFF`, `12px` radius, Soft Cloud shadow
-- [ ] `P4.6.3` Search input: Inter 500 15px, `⌕` icon left, `esc` badge right (Funnel Sans `#999999`, `#F5F5F5` bg, `4px` radius border)
-- [ ] `P4.6.4` Filter tabs: All / Meetings / Projects / Notes — Funnel Sans 11px; active: `#EBF0FF` bg + `#0066FF` text + `4px` radius
-- [ ] `P4.6.5` Result count: Funnel Sans 11px `#999999` right-aligned in filter row
-- [ ] `P4.6.6` Result rows: file name (Inter 600 13px `#1A1A1A`) · `·` separator · folder path (Funnel Sans 11px `#999999`) · excerpt (Geist 12px `#666666`)
-- [ ] `P4.6.7` Active/hovered result: `#EBF0FF` bg, file name turns `#0066FF`
-- [ ] `P4.6.8` Keyboard: ↑↓ to navigate results, Enter to open file, Tab to preview
-- [ ] `P4.6.9` Footer: keyboard shortcut hints (Geist Mono keys in `#F5F5F5`/`#E5E5E5` boxes, Funnel Sans labels `#999999`)
-- [ ] `P4.6.10` On result select: close modal, `setActiveFile(path)`, load content
+- [x] `P4.6.1` Open on ⌘K / Ctrl+K; close on Escape or backdrop click
+- [x] `P4.6.2` Backdrop: `rgba(0,0,0,0.4)`; modal: `#FFFFFF`, `12px` radius, Soft Cloud shadow
+- [x] `P4.6.3` Search input: Inter 500 15px, `⌕` icon left, `esc` badge right (Funnel Sans `#999999`, `#F5F5F5` bg, `4px` radius border)
+- [x] `P4.6.4` Filter tabs: All / Meetings / Projects / Notes — Funnel Sans 11px; active: `#EBF0FF` bg + `#0066FF` text + `4px` radius
+- [x] `P4.6.5` Result count: Funnel Sans 11px `#999999` right-aligned in filter row
+- [x] `P4.6.6` Result rows: file name (Inter 600 13px `#1A1A1A`) · `·` separator · folder path (Funnel Sans 11px `#999999`) · excerpt (Geist 12px `#666666`)
+- [x] `P4.6.7` Active/hovered result: `#EBF0FF` bg, file name turns `#0066FF`
+- [x] `P4.6.8` Keyboard: ↑↓ to navigate results, Enter to open file, Tab to preview
+- [x] `P4.6.9` Footer: keyboard shortcut hints (Geist Mono keys in `#F5F5F5`/`#E5E5E5` boxes, Funnel Sans labels `#999999`)
+- [x] `P4.6.10` On result select: close modal, `setActiveFile(path)`, load content
 
 ### 4.7 — AI response cache
 - [ ] `P4.7.1` In `hooks/useAI.ts`: before calling `streamAI`, compute cache key via `crypto.subtle.digest('SHA-256', encoder.encode(path + content + prompt))`

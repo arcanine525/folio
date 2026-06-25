@@ -8,7 +8,9 @@ import { Preview } from "@/components/editor/Preview";
 import { EditorToolbar } from "@/components/editor/EditorToolbar";
 import { AIPanel } from "@/components/ai/AIPanel";
 import { SettingsModal } from "@/components/settings/SettingsModal";
+import { SearchModal } from "@/components/search/SearchModal";
 import { useEditor } from "@/hooks/useEditor";
+import { useSearch } from "@/hooks/useSearch";
 import { useAppStore } from "@/store/appStore";
 
 /** Demo content shown until OPFS file loading arrives in Phase 2. */
@@ -117,12 +119,20 @@ export default function Page() {
   const { content, handleChange, isDirty, saving, wordCount, readingTimeSeconds } = useEditor();
   const doc = activeFileId ? content : WELCOME_DOC;
 
-  // ⌘, / Ctrl+, toggles the AI settings modal.
+  // useSearch owns the FlexSearch worker for the app lifetime and feeds the
+  // ⌘K command palette. Mounted once at the root so the index stays warm and
+  // useEditor/useFileTree can push live updates via the search bridge.
+  const search = useSearch();
+
+  // ⌘, → settings modal · ⌘K / Ctrl+K → search modal.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === ",") {
         e.preventDefault();
         setSettingsOpen(!settingsOpen);
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        useAppStore.getState().openSearch("");
       }
     };
     document.addEventListener("keydown", onKey);
@@ -147,6 +157,11 @@ export default function Page() {
         aiPanel={<AIPanel />}
       />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SearchModal
+        results={search.results}
+        loading={search.loading}
+        onSearch={search.search}
+      />
     </>
   );
 }

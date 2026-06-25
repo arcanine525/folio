@@ -119,10 +119,10 @@
 - [x] `P2.4.7` `ContextMenu` — positioned absolutely, closes on outside click or Escape
 
 ### 2.5 — NewItemInput component (`components/filetree/NewItemInput.tsx`)
-- [ ] `P2.5.1` Render inline text `<input>` in place of the file/folder row
-- [ ] `P2.5.2` Commit on `Enter` → call `createFile` or `createFolder`, open new file
-- [ ] `P2.5.3` Cancel on `Escape` → remove input without creating anything
-- [ ] `P2.5.4` Auto-focus input on mount
+- [x] `P2.5.1` Render inline text `<input>` in place of the file/folder row
+- [x] `P2.5.2` Commit on `Enter` → call `createFile` or `createFolder`, open new file
+- [x] `P2.5.3` Cancel on `Escape` → remove input without creating anything
+- [x] `P2.5.4` Auto-focus input on mount
 
 ### 2.6 — Autosave (`hooks/useEditor.ts`)
 - [ ] `P2.6.1` Load file content from OPFS when `activeFileId` changes; set both `content` and `savedContent`

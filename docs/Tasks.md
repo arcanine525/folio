@@ -192,18 +192,18 @@
 - [x] `P3.4.10` Unit tests: all 6 `mode × dialect` cells produce correct url/headers/body; parser handles both SSE fixtures, split buffers, malformed chunks
 
 ### 3.5 — AI hook (`hooks/useAI.ts`)
-- [ ] `P3.5.1` State: `output: string`, `loading: boolean`, `error: string | null`, `history: AIMessage[]`
-- [ ] `P3.5.2` Read active `provider` + `apiKey` from `settingsStore` (`getActive()` + `keys[provider.id]`)
-- [ ] `P3.5.3` Guard: no provider → error "No AI provider configured"; `byok` without key → error "needs an API key — open Settings → AI"
-- [ ] `P3.5.4` `run(userMessage, systemPrompt, contextContent)`:
+- [x] `P3.5.1` State: `output: string`, `loading: boolean`, `error: string | null`, `history: AIMessage[]`
+- [x] `P3.5.2` Read active `provider` + `apiKey` from `settingsStore` (`getActive()` + `keys[provider.id]`)
+- [x] `P3.5.3` Guard: no provider → error "No AI provider configured"; `byok` without key → error "needs an API key — open Settings → AI"
+- [x] `P3.5.4` `run(userMessage, systemPrompt, contextContent)`:
   - Abort any in-flight `AbortController`
   - Build messages: `[...history, { role: 'user', content: '<document>\n{ctx}\n</document>\n\n{userMessage}' }]`
   - Reset `output`, `error`; set `loading: true`
   - Iterate `streamAI(messages, systemPrompt, provider, apiKey, signal)`, accumulate tokens into `output`
   - On completion: push user + assistant messages to `history`
   - On `AbortError`: swallow silently; on other error: set `error`; always: set `loading: false`
-- [ ] `P3.5.5` `stop()` — call `abortController.abort()`
-- [ ] `P3.5.6` `clearHistory()` — reset `history` to `[]`
+- [x] `P3.5.5` `stop()` — call `abortController.abort()`
+- [x] `P3.5.6` `clearHistory()` — reset `history` to `[]`
 
 ### 3.6 — Scope context builder (`lib/ai.ts` or `hooks/useAI.ts`)
 - [x] `P3.6.1` `buildContext(scope, activeFileId): Promise<string>`

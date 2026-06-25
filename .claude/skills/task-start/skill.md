@@ -1,35 +1,64 @@
 ---
 name: task-start
 description: >
-  Pick a task from Tasks.md by ID, show an implementation plan, confirm with the
-  user, branch from develop, implement, write unit tests, run build + lint + tests,
-  then mark the task done in Tasks.md.
-  Use when the user runs /task-start <task-id>  (e.g. /task-start P2.4).
+  Pick work from Tasks.md by ID at three granularities — a single task, a whole
+  section, or an entire phase — show an implementation plan, confirm with the user,
+  branch from develop, implement, write unit tests, run build + lint + tests, mark
+  the work done in Tasks.md, and commit.
+  Use when the user runs /task-start <id>  (e.g. /task-start P2.4.1, P2.4, or P2).
 ---
 
 # task-start
 
-Implements one section from `Tasks.md`. Steps run in order; a **STOP** means
-tell the user what happened and end the skill.
+Implements work from `Tasks.md`. Steps run in order; a **STOP** means tell the user
+what happened and end the skill.
 
-The task file lives at `Tasks.md` in the docs/ folder.
-Branch naming: `feature/folio-<task-id-lowercase>` (e.g. `feature/folio-p2-4`).
+The task file lives at `Tasks.md` in the `docs/` folder.
 Base branch: `develop`.
+
+## Input granularity
+
+The single argument decides scope, branch name, and commit granularity:
+
+| Input | Example | Scope | Branch name | Commits |
+|---|---|---|---|---|
+| **task-id** `P<phase>.<section>.<index>` | `P2.4.1` | one task item | `feature/folio-<task-id><summary>` | **1 commit** |
+| **section-id** `P<phase>.<section>` | `P2.4` | all unchecked items in the section | `feature/folio-<section-id><summary>` | **1 commit per task** |
+| **phase-id** `P<phase>` | `P2` | all unchecked items in every section of the phase | `feature/folio-<phase-id><summary>` | **1 commit per task** |
+
+Where:
+- `<id>` is the ID lowercased with dots replaced by dashes (`P2.4.1` → `p2-4-1`, `P2.4` → `p2-4`, `P2` → `p2`).
+- `<summary>` is a short kebab description, prefixed with a dash (e.g. `-filetree-item`).
+
+So the resulting branch looks like `feature/folio-p2-4-filetree-item`.
+
+The **only** difference between section-id and phase-id is how many tasks are in
+scope — both commit once per task. A task-id produces a single commit.
 
 ---
 
-## Step 1 — Parse the task ID
+## Step 1 — Parse the ID and determine granularity
 
-Accept the task ID passed as the argument to `/task-start`.
-Valid formats: `P<phase>.<section>` for a whole section (e.g. `P2.4`) or
-`P<phase>.<section>.<index>` for a single item (e.g. `P2.4.1`) or `P <phase>` for a phase.
+Read the single argument to `/task-start` and classify it:
+
+- `P<phase>.<section>.<index>` (e.g. `P2.4.1`) → **task-id** (single item)
+- `P<phase>.<section>` (e.g. `P2.4`) → **section-id**
+- `P<phase>` (e.g. `P2`) → **phase-id**
 
 If no argument was given, read `Tasks.md`, find the first section that has **any**
-unchecked `- [ ]` item, and use that section ID. Tell the user which ID was
+unchecked `- [ ]` item, treat it as a **section-id**, and tell the user which ID was
 auto-selected.
 
-If the ID is not found in `Tasks.md`, **STOP**: tell the user the ID doesn't
-exist and list the available phase/section IDs.
+If the ID is not found in `Tasks.md`, **STOP**: tell the user the ID doesn't exist
+and list the available phase/section IDs.
+
+Build the **work list** — the ordered set of `- [ ]` unchecked items now in scope:
+- task-id → exactly that one item (if it's already `- [x]`, **STOP**: already done)
+- section-id → every unchecked item in that section
+- phase-id → every unchecked item across all sections of that phase, in document order
+
+If the work list is empty (everything already `- [x]`): **STOP** and tell the user
+the scope is complete; suggest the next unchecked ID.
 
 ---
 
@@ -41,58 +70,51 @@ git status --porcelain
 ```
 
 If there are **any** staged or unstaged changes: **STOP** and tell the user to
-commit or stash before starting a new task.
+commit or stash before starting new work.
 
 ---
 
-## Step 3 — Read the task(s)
+## Step 3 — Read the work
 
-Parse `Tasks.md` to extract the full content of the target section (or single
-item). Collect:
+Parse `Tasks.md` to extract, for everything in scope:
 
-- **Section heading** — e.g. `2.4 — FileTreeItem component`
-- **Target file(s)** — parsed from the heading or task text in backticks
-- **All task items** — both checked and unchecked
-- **Already-done count** — number of `- [x]` items in the section
-- **Remaining items** — the `- [ ]` items to implement now
-
-If **all items are already checked** (`- [x]`): **STOP** and tell the user this
-section is complete. Suggest the next unchecked section.
+- **Headings** — phase and/or section titles covered
+- **Target file(s)** — parsed from headings and task text in backticks
+- **Work list** — the unchecked `- [ ]` items to implement now, in order
+- **Already-done count** — number of `- [x]` items already checked in scope
 
 ---
 
 ## Step 4 — Show implementation plan and confirm
 
-Present a concise plan **before writing any code**:
+Present a concise plan **before writing any code**. Show the scope, branch name, the
+commit strategy, and the ordered work list. Example for a **section-id**:
 
 ```
-Task:    P2.4 — FileTreeItem component
-File:    components/filetree/FileTreeItem.tsx
-Branch:  feature/folio-p2-4 (from develop)
+Scope:    section P2.4 — FileTreeItem component
+File:     components/filetree/FileTreeItem.tsx
+Branch:   feature/folio-p2-4-filetree-item (from develop)
+Commits:  1 per task (7 tasks → up to 7 commits)
 
-What I'll implement:
+Work list:
   P2.4.1  Left-click → setActiveFile + load content from OPFS
-  P2.4.2  Active file styling: #EBF0FF bg, 3px #0066FF left bar, Inter 600
-  P2.4.3  Non-active file: Geist 12px #666666
-  P2.4.4  Folder: Inter 500 12px #1A1A1A
+  P2.4.2  Active file styling: accent bg, 3px accent left bar, Inter 600
+  P2.4.3  Non-active file: Geist 12px secondary
+  P2.4.4  Folder: Inter 500 12px primary
   P2.4.5  Right-click context menu: Rename · Delete · New file · New folder
-  P2.4.6  Unsaved-changes dot (Funnel Sans, #0066FF)
+  P2.4.6  Unsaved-changes dot (Funnel Sans, accent)
   P2.4.7  ContextMenu closes on outside click or Escape
 
-Tests I'll write:
-  - renders active file with correct styles
-  - renders non-active file with correct styles
-  - fires setActiveFile on left-click
-  - opens context menu on right-click
-  - context menu closes on Escape
-
-Already done in this section: 0 / 7
+Already done in scope: 0 / 7
 
 Continue? [y/n]
 ```
 
-Wait for the user to confirm. If they say **n** or ask to change scope: adjust
-the plan and re-present. Do not proceed until explicitly confirmed.
+For a **task-id**, show the single item and `Commits: 1`. For a **phase-id**, group
+the work list under each section heading and show the total task count.
+
+Wait for the user to confirm. If they say **n** or ask to change scope: adjust and
+re-present. Do not proceed until explicitly confirmed.
 
 ---
 
@@ -100,174 +122,158 @@ the plan and re-present. Do not proceed until explicitly confirmed.
 
 ```bash
 git fetch origin develop
-git switch -c feature/folio-<task-id-slug> <summary> origin/develop
+git switch -c feature/folio-<id><summary> origin/develop
 ```
 
-Where
-`<task-id-slug>` is the task ID lowercased with dots replaced by dashes (e.g. `P2.4` → `p2-4`, `P3.10` → `p3-10`)
+`<id>` is the input ID slugified (dots → dashes, lowercased); `<summary>` is a brief
+kebab description with a leading dash. Examples:
 
-`<summary>` is a brief description of the task (e.g. 'implement-file-tree-item-component').
-```
+- task-id `P2.4.1` → `feature/folio-p2-4-1-load-file-on-click`
+- section-id `P2.4` → `feature/folio-p2-4-filetree-item`
+- phase-id `P2` → `feature/folio-p2-opfs-persistence`
 
 Confirm which branch is now active before continuing.
 
 ---
 
-## Step 6 — Implement
+## Step 6 — Implement, test, and commit (per-task loop)
 
-Write the code for every unchecked item in the section. Follow these rules:
+Process the work list **one task at a time, in order**. For section-id and phase-id
+this yields **one commit per task**; for a task-id it runs once and yields a single
+commit.
 
-**Design tokens** — all colours, fonts, and radii must come from the Minimal Ink
-system defined in `app/globals.css` CSS variables. Never hardcode hex values in
-component files; use `var(--color-accent)` etc., or Tailwind aliases if configured.
+For each task item:
 
-**Fonts** — heading/label text: Inter; body/paragraph text: Geist; captions/hints/
-metadata: Funnel Sans; code/mono: Geist Mono. Apply via Tailwind font-family
-utilities or inline `style={{ fontFamily: 'var(--font-inter)' }}`.
+**6a. Implement** the item, following these rules:
 
-**File placement** — create or edit only the file(s) named in the task. Do not
-refactor unrelated files. If a dependency (e.g. a UI primitive like `Button`) is
-not yet built, inline a minimal version and add a `// TODO: replace with ui/Button`
-comment.
+- **Design tokens** — all colours, fonts, and radii come from the Minimal Ink system
+  in `app/globals.css` CSS variables. Never hardcode hex values; use
+  `var(--color-accent)` etc., or Tailwind aliases if configured.
+- **Fonts** — headings/labels: Inter; body/paragraph: Geist; captions/hints/metadata:
+  Funnel Sans; code/mono: Geist Mono. Apply via Tailwind utilities or inline
+  `style={{ fontFamily: 'var(--font-inter)' }}`.
+- **File placement** — create or edit only the file(s) named in the task. Don't
+  refactor unrelated files. If a not-yet-built dependency (e.g. a `Button` primitive)
+  is needed, inline a minimal version with a `// TODO: replace with ui/Button` comment.
+- **TypeScript** — no `any`. Use types from `types/index.ts`; extend them there if needed.
+- **Imports** — use project-relative paths (`@/components/…`, `@/lib/…`, `@/hooks/…`,
+  `@/store/…`). Never use `../../` paths.
 
-**TypeScript** — no `any`. Use types from `types/index.ts`. Extend them there if
-needed.
+**6b. Write unit tests** co-located with the implementation (see the coverage table in
+Step 7). Skip only for items with no testable code (e.g. setup/CSS items) — note this.
 
-**Imports** — use project-relative paths (`@/components/…`, `@/lib/…`, `@/hooks/…`,
-`@/store/…`). Never use relative `../../` paths.
+**6c. Run targeted checks** (fast feedback per task):
 
-After implementing, briefly summarise each item completed.
+```bash
+npx tsc --noEmit
+npx vitest run <test-file-pattern for this task>
+```
+
+Fix the root cause of any failure before committing this task. Do not suppress errors.
+
+**6d. Mark the task done** — change this item's `- [ ]` to `- [x]` in `Tasks.md`.
+Edit only that line; do not rewrite the file.
+
+**6e. Commit just this task.** Stage only the file(s) this task changed plus `Tasks.md`:
+
+```bash
+git add <files-for-this-task> docs/Tasks.md
+git commit -m "feat(folio): <task-id> <short item description>"
+```
+
+Example:
+
+```
+feat(folio): P2.4.1 load file content from OPFS on left-click
+```
+
+Then move to the next task in the work list.
+
+**Coupled items** — if two items genuinely cannot compile or be tested independently
+(e.g. a handler and the state it sets, added in the same edit), implement them together
+and note in the commit body which task-ids are covered. Prefer one commit per task;
+combine only when separation would break the build.
 
 ---
 
-## Step 7 — Write unit tests
+## Step 7 — Test coverage reference
 
-Create or update the test file co-located with the implementation:
-- `components/**/*.test.tsx` for React components (use `@testing-library/react`)
-- `lib/**/*.test.ts` for pure functions (use `vitest` or `jest`)
-- `hooks/**/*.test.ts` for hooks (use `@testing-library/react` `renderHook`)
+Co-locate tests with the code:
+- `components/**/*.test.tsx` for React components (`@testing-library/react`)
+- `lib/**/*.test.ts` for pure functions (`vitest`)
+- `hooks/**/*.test.ts` for hooks (`@testing-library/react` `renderHook`)
 
-**Minimum test coverage per section:**
+**Minimum coverage per task:**
 
 | File type | Required tests |
 |---|---|
 | React component | renders without crash · key props affect output · user interactions fire correct callbacks |
-| Hook | initial state is correct · state transitions on actions · cleanup runs on unmount |
-| Lib/utility | happy path · edge cases listed in task description · throws/rejects on invalid input |
+| Hook | initial state correct · state transitions on actions · cleanup runs on unmount |
+| Lib/utility | happy path · edge cases from the task description · throws/rejects on invalid input |
 | API route | 200 success · 4xx validation failures · upstream error passthrough |
 
-Tests must not:
-- Mock the entire module under test
-- Use `any` casts to silence TypeScript errors
-- Skip async behaviour (use `waitFor`, `act`, or `await` properly)
+Tests must not: mock the entire module under test; use `any` casts to silence TS;
+skip async behaviour (use `waitFor`, `act`, or `await` properly).
 
-OPFS and IndexedDB are not available in jsdom — mock them at the module boundary
-in `__mocks__/opfs.ts` and `__mocks__/indexeddb.ts` (create these if they don't
-exist yet).
+OPFS and IndexedDB are unavailable in jsdom — mock them at the module boundary in
+`__mocks__/opfs.ts` and `__mocks__/indexeddb.ts` (create if missing).
 
 ---
 
-## Step 8 — Build + lint + test
+## Step 8 — Branch-level verification
 
-Run in order. **Stop at the first failure** and fix it before continuing.
+After the whole work list is committed, verify the branch as a whole (the per-task
+loop already ran `tsc` + targeted tests, so run the slower checks once here):
 
 ```bash
-# 1. Type-check
-npx tsc --noEmit
-
-# 2. Lint
 npx next lint
-
-# 3. Unit tests (run only tests related to the changed files)
-npx vitest run --reporter=verbose <test-file-pattern>
-
-# 4. Full build (catches import errors and RSC boundary issues)
-npx next build
+npx vitest run            # full suite
+npx next build            # catches import errors and RSC boundary issues
 ```
 
 If any step fails:
-- Read the full error output
-- Fix the root cause (not just suppress the error)
-- Re-run **only the failing step** to confirm it passes
-- Then re-run all four steps in order to confirm clean
+- Read the full error output and fix the root cause.
+- Re-run the failing step to confirm, then re-run all three clean.
+- Commit the fix as its own `fix(folio): …` commit (or `git commit --amend` only if it
+  belongs to the immediately preceding, not-yet-pushed task commit).
 
-Do not mark tasks done until all four steps pass with zero errors and zero
-warnings that weren't already present before this task started.
+Do not finish until lint, the full test suite, and the build all pass with zero new
+errors or warnings.
 
 ---
 
-## Step 9 — Mark tasks done in Tasks.md
+## Step 9 — Update the Progress summary table
 
-For every item that was implemented and verified, change `- [ ]` to `- [x]` in
-`Tasks.md`. Do not mark items you did not implement.
-
-```bash
-# Verify the checkbox pattern in the file first
-grep "P2.4" Tasks.md
-```
-
-Use a targeted sed or direct file edit — do not rewrite the whole file. After
-editing, confirm the diff looks correct:
-
-```bash
-git diff Tasks.md
-```
-
-If the section is now **fully complete** (all items `- [x]`), also update the
+If a **section** became fully `- [x]`, or a **phase** is now fully complete, update the
 Progress summary table at the bottom of `Tasks.md`:
 
 ```
 | 2 — OPFS + file tree | 2.1–2.8 | 🟡 In progress |
 ```
 
-Change `⬜ Not started` → `🟡 In progress` when partially done,
-`✅ Complete` when every section in the phase is fully checked.
-
----
-
-## Step 10 — Commit
-
-Stage only the files changed by this task (implementation + tests + Tasks.md):
+`⬜ Not started` → `🟡 In progress` when partially done, `✅ Complete` when every
+section in the phase is fully checked. Commit this as a small docs commit:
 
 ```bash
-git add <implementation-files> <test-files> Tasks.md
-git commit -m "feat(folio): <task-id> <section-title>
-
-- <one line per implemented item>
-
-Tests: <test file(s) added/updated>"
-```
-
-Example:
-
-```
-feat(folio): P2.4 FileTreeItem component
-
-- left-click sets active file and loads content from OPFS
-- active file: #EBF0FF bg, 3px accent left bar, Inter 600
-- non-active file: Geist 12px secondary colour
-- folder label: Inter 500 primary colour
-- right-click opens context menu with 4 actions
-- unsaved-changes dot shown when dirty flag is set
-- context menu closes on outside click and Escape
-
-Tests: components/filetree/FileTreeItem.test.tsx
+git add docs/Tasks.md
+git commit -m "docs(folio): update progress for <id>"
 ```
 
 ---
 
-## Step 11 — Summarise and suggest next
-
-Print a summary:
+## Step 10 — Summarise and suggest next
 
 ```
-✅  P2.4 — FileTreeItem component
+✅  P2.4 — FileTreeItem component (section scope)
 
-Branch:   feature/folio-p2-4
+Branch:   feature/folio-p2-4-filetree-item
 Files:    components/filetree/FileTreeItem.tsx
 Tests:    components/filetree/FileTreeItem.test.tsx
 Checks:   tsc ✓  lint ✓  vitest ✓  build ✓
-Commit:   feat(folio): P2.4 FileTreeItem component
+Commits:  7 (one per task)
+  P2.4.1  load file content from OPFS on left-click
+  P2.4.2  active file styling
+  …
 
 Tasks.md: 7 / 7 items checked in section 2.4
 Phase 2:  5 / 8 sections complete
@@ -276,22 +282,23 @@ Next unchecked section: P2.5 — NewItemInput component
 Run /task-start P2.5 to continue.
 ```
 
+For a task-id, report the single commit; for a phase-id, list commits grouped by section.
+
 ---
 
 ## Notes
 
-**Skipping items** — if an item cannot be implemented yet (blocked by a missing
-dependency from a prior task), note it clearly in the commit message and leave its
-checkbox unchecked. Do not mark blocked items as done.
+**Skipping items** — if an item can't be implemented yet (blocked by a missing
+dependency from a prior task), note it in scope, leave its checkbox unchecked, skip its
+commit, and call it out in the final summary. Do not mark blocked items as done.
 
-**Multi-file sections** — some sections touch several files (e.g. `P3.10` touches
-`AIPanel`, `AIStream`, `QuickActions`, `ScopeSelector`). Implement all of them
-before running Step 8. Stage all changed files together in the single commit.
+**Multi-file tasks** — a single task item may touch several files (e.g. a component plus
+its store slice). Stage all of that task's files into its one commit.
 
-**Sections with no testable code** — e.g. `P1.1` (project setup) or
-`P1.2` (CSS variables). For these, skip Step 7. In Step 8, run only `tsc` and
-`next build`. Note in the summary that unit tests were not applicable.
+**Tasks with no testable code** — e.g. `P1.1` (project setup) or `P1.2` (CSS variables).
+Skip Step 6b for these; in their per-task check run only `tsc` (and `next build` at the
+branch level). Note in the summary that unit tests were not applicable.
 
-**Design review** — after any section that produces visible UI (components,
-layouts, modals), open `http://localhost:3000` and visually verify against the
-wireframes in `.claude/wireframes/` before committing. Note any discrepancies.
+**Design review** — after any task that produces visible UI, open
+`http://localhost:3000` and visually verify against the wireframes in
+`.claude/wireframes/` before the branch-level verification. Note any discrepancies.

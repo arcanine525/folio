@@ -4,9 +4,10 @@ description: >
   Convert a task list file from plain checkbox style (- [ ] description) to
   ID-tagged style (- [ ] `P<phase>.<section>.<index>` description), preserving
   all existing content, checked/unchecked state, and structure.
-  Handles any markdown task file — not just Folio's Tasks.md.
+  Produces the exact ID scheme consumed by /task-start.
+  Handles any markdown task file — not just Folio's docs/Tasks.md.
   Use when the user runs /task-id-migrate [filepath]
-  (defaults to Tasks.md in the project root if no path given).
+  (defaults to docs/Tasks.md if no path given).
 ---
 
 # task-id-migrate
@@ -17,13 +18,30 @@ shows a diff, and only overwrites the original on explicit confirmation.
 
 ---
 
+## Alignment with /task-start
+
+`/task-start` selects work at **three granularities** from the tagged file:
+
+| Granularity | ID form | Example | How it's addressed |
+|---|---|---|---|
+| phase-id | `P<phase>` | `P2` | the `## Phase N — …` heading |
+| section-id | `P<phase>.<section>` | `P2.4` | the `### N.M — …` heading |
+| task-id | `P<phase>.<section>.<index>` | `P2.4.1` | the inline `` `…` `` tag on the task line |
+
+Only **task lines** receive an inline `` `P<phase>.<section>.<index>` `` ID. Phases and
+sections are addressed through their **headings**, so this skill must keep the
+`## Phase N — …` and `### N.M — …` heading formats intact for `/task-start` to resolve
+phase-id and section-id. Never emit IDs deeper than three segments — `/task-start`
+cannot select a 4-segment ID (see Notes → Nested tasks).
+
+---
+
 ## Step 1 — Resolve the target file
 
-Use the filepath argument if provided. Otherwise default to `Tasks.md` in the
-current working directory.
+Use the filepath argument if provided. Otherwise default to `docs/Tasks.md`.
 
 ```bash
-TARGET="${1:-Tasks.md}"
+TARGET="${1:-docs/Tasks.md}"
 ```
 
 If the file does not exist: **STOP** and tell the user.
@@ -69,6 +87,10 @@ Applies when the file has headings of the form:
 
 IDs produced: `P<N>.<M>.<index>` e.g. `P2.4.3`
 
+This is the scheme `/task-start` expects. Prefer it whenever Phase/Section headings
+exist, and keep those heading formats unchanged so phase-id (`P<N>`) and section-id
+(`P<N>.<M>`) stay resolvable.
+
 ### Scheme B — Custom prefix
 
 If the file does NOT have `## Phase N` headings but does have `## <Title>`
@@ -77,7 +99,8 @@ and `### <subtitle>` headings, ask the user:
 > "I couldn't detect Phase/Section headings. What prefix should I use for IDs?
 > Examples: `T` → `T1.2.3`, `TASK` → `TASK1.2.3`, or press Enter to use `P`."
 
-Use the chosen prefix for all IDs.
+Use the chosen prefix for all IDs. Note: `/task-start`'s built-in regex assumes the
+`P` prefix — if a different prefix is chosen, the two skills must be kept in sync.
 
 ### Scheme C — Flat list (no headings)
 
@@ -88,6 +111,8 @@ If the file has task items but no `##` or `###` headings at all, ask:
 
 If sequential: produce `<prefix>1`, `<prefix>2`, etc.
 If headings first: **STOP** and tell the user to add headings then re-run.
+(Note: a flat scheme has no phase/section granularity, so `/task-start` can only
+operate on it task-by-task.)
 
 ---
 
@@ -131,7 +156,8 @@ Detect these by checking if the nearest parent `##` heading does **not** match
 - `### Cloud Run` → `CR`
 - `### AWS ECS` → `AWS`
 
-Full ID: `PD.<SLUG>.<index>` e.g. `PD.CR.3`
+Full ID: `PD.<SLUG>.<index>` e.g. `PD.CR.3`. `/task-start` treats `PD.<SLUG>` as a
+section-id and `PD.<SLUG>.<index>` as a task-id.
 
 ---
 
@@ -175,6 +201,7 @@ Replace it with:
 ```
 > Track progress phase by phase. Each task has a unique ID in the format
 > `P<phase>.<section>.<index>` (e.g. `P2.4.3`). Deployment tasks use `PD.V.1` / `PD.CR.1`.
+> Run /task-start <id> at task, section, or phase granularity.
 ```
 
 If no such line exists, insert it as the first blockquote after the `#` title.
@@ -184,21 +211,21 @@ If no such line exists, insert it as the first blockquote after the `#` title.
 ## Step 6 — Write to a staging file and show diff
 
 Write the converted content to `<original-name>.migrated.md` (e.g.
-`Tasks.migrated.md`) so the original is untouched.
+`docs/Tasks.migrated.md`) so the original is untouched.
 
 Show the user a summary:
 
 ```
 Migration preview
 ─────────────────────────────────────────
-File:            Tasks.md
+File:            docs/Tasks.md
 Tasks tagged:    47  (were untagged)
 Already tagged:  0   (preserved as-is)
 Checked tasks:   3   (state preserved)
 Sections found:  23
 ID range:        P1.1.1 → P7.6.6, PD.V.1 → PD.CR.5
 
-Staged output:   Tasks.migrated.md
+Staged output:   docs/Tasks.migrated.md
 
 First 20 changed lines:
 [show a compact before/after diff of the first 20 modified lines]
@@ -206,8 +233,8 @@ First 20 changed lines:
 
 Then ask:
 
-> "Overwrite `Tasks.md` with the migrated version? [y/n]
-> (The original will be backed up as Tasks.md.bak)"
+> "Overwrite `docs/Tasks.md` with the migrated version? [y/n]
+> (The original will be backed up as docs/Tasks.md.bak)"
 
 ---
 
@@ -216,24 +243,24 @@ Then ask:
 **If the user confirms (y):**
 
 ```bash
-cp Tasks.md Tasks.md.bak          # backup
-mv Tasks.migrated.md Tasks.md     # apply
+cp "$TARGET" "$TARGET.bak"                  # backup
+mv "${TARGET%.md}.migrated.md" "$TARGET"    # apply
 ```
 
 Confirm:
 
 ```
 ✅  Migration complete
-    Tasks.md updated  (backup: Tasks.md.bak)
+    docs/Tasks.md updated  (backup: docs/Tasks.md.bak)
     47 tasks now have IDs.
-    Run /task-start to pick up the next unchecked task.
+    Run /task-start <id> to pick up work at task, section, or phase granularity.
 ```
 
 **If the user declines (n):**
 
 ```
-Aborted. Tasks.migrated.md preserved for review.
-Original Tasks.md unchanged.
+Aborted. docs/Tasks.migrated.md preserved for review.
+Original docs/Tasks.md unchanged.
 ```
 
 Leave both files in place and end.
@@ -253,20 +280,23 @@ against the output and report any warnings:
 | Checkbox state preserved | Count of `- [x]` in output equals count in input |
 | Total task count preserved | Total `- [ ]` + `- [x]` in output equals input |
 | No content lost | Line count of non-blank lines is the same or greater |
+| Headings intact | Every `## Phase N — …` and `### N.M — …` heading is unchanged (so /task-start can resolve phase/section IDs) |
 
 If any check fails: print a `⚠️ Warning` for each failure with the line number
 and content. Do **not** apply the migration automatically if there are failures —
-ask the user to review `Tasks.migrated.md` manually before confirming.
+ask the user to review `docs/Tasks.migrated.md` manually before confirming.
 
 ---
 
 ## Notes
 
-**Nested tasks** — if a `- [ ]` item is indented under another `- [ ]` item
-(sub-tasks), treat each level as its own sequence within the section. Use a
-fourth segment: `P2.4.1.a`, `P2.4.1.b`, etc. for sub-items of `P2.4.1`.
-If sub-tasks are present, note this in the summary and ask the user to confirm
-the sub-task ID format before proceeding.
+**Nested tasks** — `/task-start` only addresses three levels (phase / section / task),
+so it cannot select a 4-segment ID. If a `- [ ]` item is indented under another `- [ ]`
+item (sub-tasks), **STOP** and ask the user how to proceed before tagging:
+  a) Flatten — promote each sub-task to its own `P<phase>.<section>.<index>` item in the
+     section sequence (recommended; keeps every line selectable by `/task-start`).
+  b) Merge — fold sub-tasks into their parent's description so only the parent is tagged.
+Do not emit `P2.4.1.a`-style IDs — they are not compatible with `/task-start`.
 
 **Code fences** — never tag lines inside a fenced code block (``` or ~~~).
 Track fence open/close state while parsing and skip task-pattern matching inside
@@ -279,7 +309,7 @@ and ask the user whether to:
   b) Leave existing IDs and only tag untagged lines
   c) Abort
 
-**Multiple files** — if the user passes a glob (`/task-id-migrate tasks/*.md`),
+**Multiple files** — if the user passes a glob (`/task-id-migrate docs/*.md`),
 process each file independently and report a per-file summary. Back up each
 original before overwriting.
 

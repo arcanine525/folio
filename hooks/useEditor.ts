@@ -40,7 +40,8 @@ export function useEditor(): UseEditor {
   const activeFileId = useAppStore((s) => s.activeFileId);
   const content = useAppStore((s) => s.content);
   const setContent = useAppStore((s) => s.setContent);
-  const [savedContent, setSavedContent] = useState("");
+  const savedContent = useAppStore((s) => s.savedContent);
+  const setSavedContent = useAppStore((s) => s.setSavedContent);
   const [saving, setSaving] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -60,7 +61,7 @@ export function useEditor(): UseEditor {
     await opfs.writeFile(id, text);
     setSavedContent(text);
     setSaving(false);
-  }, []);
+  }, [setSavedContent]);
 
   // Load on activeFileId change; cancel any pending save for the prior file.
   useEffect(() => {

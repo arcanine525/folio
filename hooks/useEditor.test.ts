@@ -10,7 +10,7 @@ import {
 import { useAppStore } from "@/store/appStore";
 
 function resetStore() {
-  useAppStore.setState({ tree: [], activeFileId: null, content: "" });
+  useAppStore.setState({ tree: [], activeFileId: null, content: "", savedContent: "" });
 }
 
 describe("hooks/useEditor", () => {

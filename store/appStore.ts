@@ -32,6 +32,8 @@ export interface AppState {
   activeFileId: string | null;
   /** Current editor buffer content. */
   content: string;
+  /** Last-saved snapshot of the active file (drives the dirty flag). */
+  savedContent: string;
   /** Sidebar width in px, persisted to localStorage. */
   sidebarWidth: number;
   /** Whether the AI panel is visible. */
@@ -44,6 +46,7 @@ export interface AppState {
   setTree: (tree: FSNode[]) => void;
   setActiveFile: (id: string | null) => void;
   setContent: (content: string) => void;
+  setSavedContent: (savedContent: string) => void;
   setSidebarWidth: (width: number) => void;
   setAiPanelWidth: (width: number) => void;
   setAiPanelOpen: (open: boolean) => void;
@@ -55,6 +58,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   tree: [],
   activeFileId: null,
   content: "",
+  savedContent: "",
   // Defaults on the server; real persisted values on the client at init.
   sidebarWidth: readNumber(SIDEBAR_KEY, DEFAULT_SIDEBAR_WIDTH),
   aiPanelOpen: true,
@@ -64,6 +68,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   setTree: (tree) => set({ tree }),
   setActiveFile: (activeFileId) => set({ activeFileId }),
   setContent: (content) => set({ content }),
+  setSavedContent: (savedContent) => set({ savedContent }),
 
   setSidebarWidth: (sidebarWidth) => {
     writeNumber(SIDEBAR_KEY, sidebarWidth);

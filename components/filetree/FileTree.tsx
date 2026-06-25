@@ -13,6 +13,8 @@ export interface FileTreeProps {
   onDelete?: (node: FSNode) => void;
   onNewFile?: (node: FSNode) => void;
   onNewFolder?: (node: FSNode) => void;
+  /** Per-node dirty predicate — true rows show the unsaved dot. */
+  isDirty?: (node: FSNode) => boolean;
 }
 
 /** Folders first, then alphabetical by name. */
@@ -35,6 +37,7 @@ export function FileTree({
   onDelete,
   onNewFile,
   onNewFolder,
+  isDirty,
 }: FileTreeProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
 
@@ -59,6 +62,7 @@ export function FileTree({
           node={node}
           depth={depth}
           expanded={expanded}
+          dirty={isDirty?.(node) ?? false}
           onActivate={onActivate}
           onToggleExpand={toggleExpand}
           onRename={onRename}

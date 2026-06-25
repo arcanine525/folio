@@ -137,10 +137,10 @@
 - [x] `P2.7.3` Warning banner: `#FEF2F2` bg, Geist 13px, dismissable
 
 ### 2.8 — Sidebar wiring (`components/layout/Sidebar.tsx`)
-- [ ] `P2.8.1` Render `<FileTree>` in top section, full height with `overflow-y: auto`
-- [ ] `P2.8.2` Render footer section: "Upload audio / transcript" button (Funnel Sans 12px, `#666666`, border `#E5E5E5`)
-- [ ] `P2.8.3` Render sidebar header: "FILES" label (Funnel Sans 10px 600 `#999999`) + `+` new file button
-- [ ] `P2.8.4` Apply box shadow: `0 1px 4px #00000008` on sidebar right edge separator
+- [x] `P2.8.1` Render `<FileTree>` in top section, full height with `overflow-y: auto`
+- [x] `P2.8.2` Render footer section: "Upload audio / transcript" button (Funnel Sans 12px, `#666666`, border `#E5E5E5`)
+- [x] `P2.8.3` Render sidebar header: "FILES" label (Funnel Sans 10px 600 `#999999`) + `+` new file button
+- [x] `P2.8.4` Apply box shadow: `0 1px 4px #00000008` on sidebar right edge separator
 
 **✓ Phase 2 done when:** Create a file, type content, refresh the page — file tree and content are exactly as left.
 
@@ -467,7 +467,7 @@
 | Phase | Tasks | Status |
 |---|---|---|
 | 1 — Skeleton + editor | 1.1–1.8 | ✅ Done |
-| 2 — OPFS + file tree | 2.1–2.8 | 🟡 In progress |
+| 2 — OPFS + file tree | 2.1–2.8 | ✅ Done |
 | 3 — AI proxy + streaming | 3.1–3.10 | ⬜ Not started |
 | 4 — Search + metadata + cache | 4.1–4.7 | ⬜ Not started |
 | 5 — Audio + transcription | 5.1–5.4 | ⬜ Not started |

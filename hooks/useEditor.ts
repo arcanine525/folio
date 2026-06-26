@@ -1,10 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as opfs from "@/lib/opfs";
+import { bridgeUpdate } from "@/lib/searchBridge";
+import { setMeta } from "@/lib/indexeddb";
+import { computeMeta, countWords } from "@/lib/metadata";
 import { useAppStore } from "@/store/appStore";
 
 export interface UseEditor {
   /** Current buffer (mirrors `store.content`). */
   content: string;
+  /** Word count of the current buffer (frontmatter stripped), for the toolbar. */
+  wordCount: number;
+  /** Estimated reading time in seconds (ceil(wordCount / 4), ≈ 240 wpm). */
+  readingTimeSeconds: number;
   /** True when the buffer differs from the last-saved snapshot. */
   isDirty: boolean;
   /** True while a debounced save is in flight. */
@@ -21,6 +28,12 @@ let autosaveDebounceMs = 800;
 /** Test-only override so the debounce can be made instant or effectively never. */
 export function __setAutosaveDebounceForTests(ms: number): void {
   autosaveDebounceMs = ms;
+}
+
+/** Last path segment (the file name), used for the search-index doc name. */
+function basename(path: string): string {
+  const idx = path.lastIndexOf("/");
+  return idx === -1 ? path : path.slice(idx + 1);
 }
 
 /**
@@ -61,6 +74,15 @@ export function useEditor(): UseEditor {
     await opfs.writeFile(id, text);
     setSavedContent(text);
     setSaving(false);
+    // P4.2.1–P4.2.3: persist file metadata (word count, reading time, tags) so
+    // search + tag autocomplete stay current. Best-effort: never blocks editing.
+    try {
+      await setMeta(computeMeta(id, text));
+    } catch {
+      /* metadata persistence is non-critical */
+    }
+    // P4.5.4: push the new content into the live search index.
+    bridgeUpdate({ path: id, name: basename(id), content: text });
   }, [setSavedContent]);
 
   // Load on activeFileId change; cancel any pending save for the prior file.
@@ -116,8 +138,14 @@ export function useEditor(): UseEditor {
   // Clear any pending save when the hook unmounts.
   useEffect(() => clearTimer, [clearTimer]);
 
+  // P4.2.4: derive live word count + reading time from the buffer for the toolbar.
+  const wordCount = useMemo(() => countWords(content), [content]);
+  const readingTimeSeconds = Math.ceil(wordCount / 4);
+
   return {
     content,
+    wordCount,
+    readingTimeSeconds,
     isDirty: content !== savedContent,
     saving,
     handleChange,

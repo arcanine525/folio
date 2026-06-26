@@ -8,7 +8,9 @@ import { Preview } from "@/components/editor/Preview";
 import { EditorToolbar } from "@/components/editor/EditorToolbar";
 import { AIPanel } from "@/components/ai/AIPanel";
 import { SettingsModal } from "@/components/settings/SettingsModal";
+import { SearchModal } from "@/components/search/SearchModal";
 import { useEditor } from "@/hooks/useEditor";
+import { useSearch } from "@/hooks/useSearch";
 import { useAppStore } from "@/store/appStore";
 
 /** Demo content shown until OPFS file loading arrives in Phase 2. */
@@ -65,13 +67,22 @@ interface EditorZoneProps {
   mode: "split" | "source" | "preview";
   dirty?: boolean;
   saving?: boolean;
+  wordCount?: number;
+  readingTimeSeconds?: number;
 }
 
 /** Editor area: toolbar on top, then panes switched by editor mode. */
-function EditorZone({ doc, onChange, viewRef, mode, dirty, saving }: EditorZoneProps) {
+function EditorZone({ doc, onChange, viewRef, mode, dirty, saving, wordCount, readingTimeSeconds }: EditorZoneProps) {
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <EditorToolbar content={doc} viewRef={viewRef} dirty={dirty} saving={saving} />
+      <EditorToolbar
+        content={doc}
+        viewRef={viewRef}
+        dirty={dirty}
+        saving={saving}
+        wordCount={wordCount}
+        readingTimeSeconds={readingTimeSeconds}
+      />
       <div className="flex min-h-0 flex-1">
         {mode !== "preview" && (
           <div
@@ -105,15 +116,23 @@ export default function Page() {
 
   // useEditor is the sole writer of `content` — it loads on file switch and
   // autosaves on edit. Show the welcome doc only until a file is opened.
-  const { content, handleChange, isDirty, saving } = useEditor();
+  const { content, handleChange, isDirty, saving, wordCount, readingTimeSeconds } = useEditor();
   const doc = activeFileId ? content : WELCOME_DOC;
 
-  // ⌘, / Ctrl+, toggles the AI settings modal.
+  // useSearch owns the FlexSearch worker for the app lifetime and feeds the
+  // ⌘K command palette. Mounted once at the root so the index stays warm and
+  // useEditor/useFileTree can push live updates via the search bridge.
+  const search = useSearch();
+
+  // ⌘, → settings modal · ⌘K / Ctrl+K → search modal.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === ",") {
         e.preventDefault();
         setSettingsOpen(!settingsOpen);
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        useAppStore.getState().openSearch("");
       }
     };
     document.addEventListener("keydown", onKey);
@@ -131,11 +150,18 @@ export default function Page() {
             mode={editorMode}
             dirty={isDirty}
             saving={saving}
+            wordCount={activeFileId ? wordCount : undefined}
+            readingTimeSeconds={activeFileId ? readingTimeSeconds : undefined}
           />
         }
         aiPanel={<AIPanel />}
       />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SearchModal
+        results={search.results}
+        loading={search.loading}
+        onSearch={search.search}
+      />
     </>
   );
 }

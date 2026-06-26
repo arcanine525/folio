@@ -45,6 +45,11 @@ export interface AppState {
   /** Whether the AI settings modal is open (shared so the ⌘, shortcut, the
    *  ⚙ button, and the AI panel's "Configure AI" link can all open it). */
   settingsOpen: boolean;
+  /** Whether the ⌘K search modal is open (shared so the shortcut, tag pills,
+   *  and the modal's own close can all toggle it). */
+  searchOpen: boolean;
+  /** Optional query the search modal opens pre-filled with (e.g. a clicked tag). */
+  searchInitialQuery: string;
 
   setTree: (tree: FSNode[]) => void;
   setActiveFile: (id: string | null) => void;
@@ -56,6 +61,10 @@ export interface AppState {
   toggleAiPanel: () => void;
   setEditorMode: (mode: EditorMode) => void;
   setSettingsOpen: (open: boolean) => void;
+  setSearchOpen: (open: boolean) => void;
+  setSearchInitialQuery: (query: string) => void;
+  /** Open the search modal, optionally pre-filtering to `query` (e.g. a tag). */
+  openSearch: (query?: string) => void;
 }
 
 export const useAppStore = create<AppState>()((set, get) => ({
@@ -69,6 +78,8 @@ export const useAppStore = create<AppState>()((set, get) => ({
   aiPanelWidth: readNumber(AIPANEL_KEY, DEFAULT_AIPANEL_WIDTH),
   editorMode: "split",
   settingsOpen: false,
+  searchOpen: false,
+  searchInitialQuery: "",
 
   setTree: (tree) => set({ tree }),
   setActiveFile: (activeFileId) => set({ activeFileId }),
@@ -88,4 +99,8 @@ export const useAppStore = create<AppState>()((set, get) => ({
   toggleAiPanel: () => set({ aiPanelOpen: !get().aiPanelOpen }),
   setEditorMode: (editorMode) => set({ editorMode }),
   setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
+  setSearchOpen: (searchOpen) => set({ searchOpen }),
+  setSearchInitialQuery: (searchInitialQuery) => set({ searchInitialQuery }),
+  openSearch: (query) =>
+    set({ searchOpen: true, searchInitialQuery: query ?? "" }),
 }));

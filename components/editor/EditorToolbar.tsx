@@ -4,9 +4,10 @@ import { type MutableRefObject } from "react";
 import { EditorView } from "@codemirror/view";
 import { useAppStore } from "@/store/appStore";
 import type { EditorMode } from "@/store/appStore";
+import { extractTags } from "@/lib/metadata";
 
 interface EditorToolbarProps {
-  /** Current buffer content, used for the word count + reading time. */
+  /** Current buffer content, used as a fallback for the word count + reading time. */
   content: string;
   /** Editor view shared with <Editor> — drives the format buttons. */
   viewRef: MutableRefObject<EditorView | null>;
@@ -14,6 +15,10 @@ interface EditorToolbarProps {
   dirty?: boolean;
   /** True while a debounced save is flushing to OPFS. */
   saving?: boolean;
+  /** Live word count from useEditor (P4.2.5). Falls back to a local count. */
+  wordCount?: number;
+  /** Live reading time in seconds from useEditor (P4.2.5). */
+  readingTimeSeconds?: number;
 }
 
 /** Wrap the current selection (or insert a placeholder) with `token` on both sides. */
@@ -89,12 +94,23 @@ export function EditorToolbar({
   viewRef,
   dirty = false,
   saving = false,
+  wordCount,
+  readingTimeSeconds,
 }: EditorToolbarProps) {
   const editorMode = useAppStore((s) => s.editorMode);
   const setEditorMode = useAppStore((s) => s.setEditorMode);
+  const openSearch = useAppStore((s) => s.openSearch);
 
-  const words = countWords(content);
-  const readingMinutes = Math.max(1, Math.round(words / 240));
+  // P4.3.1: tags parsed from frontmatter on each render of the active file.
+  const tags = wordCount != null ? extractTags(content) : [];
+
+  // P4.2.5: prefer live values from useEditor; fall back to a local count
+  // (e.g. the welcome doc, which has no active file → no hook metadata).
+  const words = wordCount ?? countWords(content);
+  const readingMinutes =
+    readingTimeSeconds != null
+      ? Math.max(1, Math.round(readingTimeSeconds / 60))
+      : Math.max(1, Math.round(words / 240));
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-surface-primary px-3 py-2">
@@ -112,6 +128,23 @@ export function EditorToolbar({
           </button>
         ))}
       </div>
+
+      {/* Frontmatter tag pills (P4.3.2/3) */}
+      {tags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1">
+          {tags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => openSearch(`#${tag}`)}
+              title={`Search for #${tag}`}
+              className="font-caption rounded-chip bg-accent-light px-1.5 py-0.5 text-[11px] font-medium text-accent transition-opacity hover:opacity-80"
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* View mode toggle + meta */}
       <div className="flex items-center gap-3">

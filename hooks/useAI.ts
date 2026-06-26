@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { streamAI } from "@/lib/ai";
+import { getCache, setCache } from "@/lib/indexeddb";
+import { computeCacheKey } from "@/lib/cacheKey";
 import { useSettingsStore } from "@/store/settingsStore";
 import type { AIMessage } from "@/types";
 
@@ -30,6 +32,36 @@ export interface UseAI {
  * - Any other error is surfaced via `error`.
  * - The in-flight stream is aborted on unmount.
  */
+/** Chunk size (chars) and interval (ms) for synthetic cache-hit replay (P4.7.2). */
+const REPLAY_CHUNK = 20;
+const REPLAY_INTERVAL_MS = 20;
+
+/**
+ * Replay a cached response as a synthetic stream: emit it in 20-char chunks at
+ * 20ms intervals so the UI animates like a live stream, while honouring the
+ * abort signal (stop() / unmount / a newer run).
+ */
+function replayCached(
+  response: string,
+  controller: AbortController,
+  setOutput: (value: string) => void,
+): Promise<void> {
+  return new Promise<void>((resolve) => {
+    const chunks = response.match(new RegExp(`[\\s\\S]{1,${REPLAY_CHUNK}}`, "g")) ?? [];
+    let i = 0;
+    let acc = "";
+    const timer = setInterval(() => {
+      if (controller.signal.aborted || i >= chunks.length) {
+        clearInterval(timer);
+        resolve();
+        return;
+      }
+      acc += chunks[i++];
+      setOutput(acc);
+    }, REPLAY_INTERVAL_MS);
+  });
+}
+
 export function useAI(): UseAI {
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -66,6 +98,24 @@ export function useAI(): UseAI {
       setError(null);
       setLoading(true);
 
+      // P4.7.1: key the cache on the model's actual inputs (context + system +
+      // user message) so an identical request replays its cached response.
+      const cacheKey = await computeCacheKey(contextContent, systemPrompt, userMessage);
+
+      // P4.7.2: cache hit → replay the stored response as a synthetic stream,
+      // skipping the provider call entirely.
+      const cached = await getCache(cacheKey).catch(() => undefined);
+      if (cached) {
+        await replayCached(cached.response, controller, setOutput);
+        if (!controller.signal.aborted) {
+          setHistory([...messages, { role: "assistant", content: cached.response }]);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // P4.7.3: cache miss → stream from the provider, then store the full
+      // response so the next identical request is instant.
       let acc = "";
       try {
         for await (const delta of streamAI(messages, systemPrompt, provider, apiKey, controller.signal)) {
@@ -76,6 +126,7 @@ export function useAI(): UseAI {
         // Record the turn only if the run completed (not aborted).
         if (!controller.signal.aborted) {
           setHistory([...messages, { role: "assistant", content: acc }]);
+          await setCache(cacheKey, acc).catch(() => undefined);
         }
       } catch (e) {
         if (controller.signal.aborted || (e instanceof DOMException && e.name === "AbortError")) {

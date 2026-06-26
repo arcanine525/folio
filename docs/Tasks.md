@@ -270,58 +270,58 @@
 > Goal: ⌘K live search. Tags from frontmatter. Word count in toolbar. AI cache.
 
 ### 4.1 — IndexedDB (`lib/indexeddb.ts`)
-- [ ] `P4.1.1` Open (or upgrade) database `folio-meta` version 1
-- [ ] `P4.1.2` Create object store `file-meta` with `keyPath: 'path'`; fields: `path`, `wordCount`, `readingTimeSeconds`, `lastModified`, `tags`
-- [ ] `P4.1.3` Create object store `ai-cache` with `keyPath: 'cacheKey'`; fields: `cacheKey`, `response`, `createdAt`
-- [ ] `P4.1.4` On DB open: evict `ai-cache` entries where `Date.now() - createdAt > 7 * 86400 * 1000`
-- [ ] `P4.1.5` Export typed helpers: `getMeta(path)`, `setMeta(meta)`, `getCache(key)`, `setCache(key, response)`, `deleteCache(key)`, `getAllMeta()`
+- [x] `P4.1.1` Open (or upgrade) database `folio-meta` version 1
+- [x] `P4.1.2` Create object store `file-meta` with `keyPath: 'path'`; fields: `path`, `wordCount`, `readingTimeSeconds`, `lastModified`, `tags`
+- [x] `P4.1.3` Create object store `ai-cache` with `keyPath: 'cacheKey'`; fields: `cacheKey`, `response`, `createdAt`
+- [x] `P4.1.4` On DB open: evict `ai-cache` entries where `Date.now() - createdAt > 7 * 86400 * 1000`
+- [x] `P4.1.5` Export typed helpers: `getMeta(path)`, `setMeta(meta)`, `getCache(key)`, `setCache(key, response)`, `deleteCache(key)`, `getAllMeta()`
 
 ### 4.2 — File metadata computation
-- [ ] `P4.2.1` In `hooks/useEditor.ts`: after each successful `writeFile`, compute `{ wordCount, readingTimeSeconds: ceil(words/4), lastModified: Date.now(), tags }`
-- [ ] `P4.2.2` Extract `tags` from frontmatter via `gray-matter(content).data.tags ?? []`
-- [ ] `P4.2.3` Call `setMeta({ path, wordCount, readingTimeSeconds, lastModified, tags })` to persist
-- [ ] `P4.2.4` Expose `wordCount` and `readingTimeSeconds` from `useEditor` hook
-- [ ] `P4.2.5` Update `EditorToolbar` meta row to read live values from hook
+- [x] `P4.2.1` In `hooks/useEditor.ts`: after each successful `writeFile`, compute `{ wordCount, readingTimeSeconds: ceil(words/4), lastModified: Date.now(), tags }`
+- [x] `P4.2.2` Extract `tags` from frontmatter via `gray-matter(content).data.tags ?? []`
+- [x] `P4.2.3` Call `setMeta({ path, wordCount, readingTimeSeconds, lastModified, tags })` to persist
+- [x] `P4.2.4` Expose `wordCount` and `readingTimeSeconds` from `useEditor` hook
+- [x] `P4.2.5` Update `EditorToolbar` meta row to read live values from hook
 
 ### 4.3 — Frontmatter tag pills (`components/editor/EditorToolbar.tsx`)
-- [ ] `P4.3.1` Parse `tags` array from `gray-matter` on file load
-- [ ] `P4.3.2` Render each tag as a pill: Funnel Sans 11px `#0066FF`, `#EBF0FF` bg, `4px` radius
-- [ ] `P4.3.3` Clicking a tag opens search pre-filtered to that tag
-- [ ] `P4.3.4` Tag autocomplete: when editing frontmatter, suggest all known tags from `getAllMeta()`
+- [x] `P4.3.1` Parse `tags` array from `gray-matter` on file load
+- [x] `P4.3.2` Render each tag as a pill: Funnel Sans 11px `#0066FF`, `#EBF0FF` bg, `4px` radius
+- [x] `P4.3.3` Clicking a tag opens search pre-filtered to that tag
+- [x] `P4.3.4` Tag autocomplete: when editing frontmatter, suggest all known tags from `getAllMeta()`
 
 ### 4.4 — Flexsearch worker (`lib/search-worker.ts`)
-- [ ] `P4.4.1` Mark file with `/* webworker */` comment; configure Next.js webpack to handle worker build
-- [ ] `P4.4.2` Create `FlexSearch.Document` with `{ document: { id: 'path', index: ['name', 'content'] }, tokenize: 'forward' }`
-- [ ] `P4.4.3` Handle `{ type: 'index', payload: FSNode[] }` → bulk `index.add()` each file's `{ path, name, content }`
-- [ ] `P4.4.4` Handle `{ type: 'search', payload: { query, filter? } }` → `index.search(query, { limit: 20, enrich: true })` → `postMessage({ type: 'results', payload })`
-- [ ] `P4.4.5` Handle `{ type: 'update', payload: { path, name, content } }` → `index.update()`
-- [ ] `P4.4.6` Handle `{ type: 'remove', payload: path }` → `index.remove(path)`
-- [ ] `P4.4.7` Post `{ type: 'indexed' }` after bulk indexing completes
+- [x] `P4.4.1` Mark file with `/* webworker */` comment; configure Next.js webpack to handle worker build
+- [x] `P4.4.2` Create `FlexSearch.Document` with `{ document: { id: 'path', index: ['name', 'content'] }, tokenize: 'forward' }`
+- [x] `P4.4.3` Handle `{ type: 'index', payload: FSNode[] }` → bulk `index.add()` each file's `{ path, name, content }`
+- [x] `P4.4.4` Handle `{ type: 'search', payload: { query, filter? } }` → `index.search(query, { limit: 20, enrich: true })` → `postMessage({ type: 'results', payload })`
+- [x] `P4.4.5` Handle `{ type: 'update', payload: { path, name, content } }` → `index.update()`
+- [x] `P4.4.6` Handle `{ type: 'remove', payload: path }` → `index.remove(path)`
+- [x] `P4.4.7` Post `{ type: 'indexed' }` after bulk indexing completes
 
 ### 4.5 — Search hook (`hooks/useSearch.ts`)
-- [ ] `P4.5.1` Create `Worker` from `search-worker.ts` once on mount; terminate on unmount
-- [ ] `P4.5.2` On startup: read all `.md` files from OPFS, send `{ type: 'index', payload }` to worker
-- [ ] `P4.5.3` `search(query)` → debounce 150ms → send `{ type: 'search' }` → receive `results` via `onmessage`
-- [ ] `P4.5.4` `updateIndex(path, name, content)` → send `{ type: 'update' }` — called after each file save
-- [ ] `P4.5.5` `removeFromIndex(path)` → send `{ type: 'remove' }` — called on file delete
-- [ ] `P4.5.6` Return `{ results, search, loading }`
+- [x] `P4.5.1` Create `Worker` from `search-worker.ts` once on mount; terminate on unmount
+- [x] `P4.5.2` On startup: read all `.md` files from OPFS, send `{ type: 'index', payload }` to worker
+- [x] `P4.5.3` `search(query)` → debounce 150ms → send `{ type: 'search' }` → receive `results` via `onmessage`
+- [x] `P4.5.4` `updateIndex(path, name, content)` → send `{ type: 'update' }` — called after each file save
+- [x] `P4.5.5` `removeFromIndex(path)` → send `{ type: 'remove' }` — called on file delete
+- [x] `P4.5.6` Return `{ results, search, loading }`
 
 ### 4.6 — SearchModal component (`components/search/SearchModal.tsx`)
-- [ ] `P4.6.1` Open on ⌘K / Ctrl+K; close on Escape or backdrop click
-- [ ] `P4.6.2` Backdrop: `rgba(0,0,0,0.4)`; modal: `#FFFFFF`, `12px` radius, Soft Cloud shadow
-- [ ] `P4.6.3` Search input: Inter 500 15px, `⌕` icon left, `esc` badge right (Funnel Sans `#999999`, `#F5F5F5` bg, `4px` radius border)
-- [ ] `P4.6.4` Filter tabs: All / Meetings / Projects / Notes — Funnel Sans 11px; active: `#EBF0FF` bg + `#0066FF` text + `4px` radius
-- [ ] `P4.6.5` Result count: Funnel Sans 11px `#999999` right-aligned in filter row
-- [ ] `P4.6.6` Result rows: file name (Inter 600 13px `#1A1A1A`) · `·` separator · folder path (Funnel Sans 11px `#999999`) · excerpt (Geist 12px `#666666`)
-- [ ] `P4.6.7` Active/hovered result: `#EBF0FF` bg, file name turns `#0066FF`
-- [ ] `P4.6.8` Keyboard: ↑↓ to navigate results, Enter to open file, Tab to preview
-- [ ] `P4.6.9` Footer: keyboard shortcut hints (Geist Mono keys in `#F5F5F5`/`#E5E5E5` boxes, Funnel Sans labels `#999999`)
-- [ ] `P4.6.10` On result select: close modal, `setActiveFile(path)`, load content
+- [x] `P4.6.1` Open on ⌘K / Ctrl+K; close on Escape or backdrop click
+- [x] `P4.6.2` Backdrop: `rgba(0,0,0,0.4)`; modal: `#FFFFFF`, `12px` radius, Soft Cloud shadow
+- [x] `P4.6.3` Search input: Inter 500 15px, `⌕` icon left, `esc` badge right (Funnel Sans `#999999`, `#F5F5F5` bg, `4px` radius border)
+- [x] `P4.6.4` Filter tabs: All / Meetings / Projects / Notes — Funnel Sans 11px; active: `#EBF0FF` bg + `#0066FF` text + `4px` radius
+- [x] `P4.6.5` Result count: Funnel Sans 11px `#999999` right-aligned in filter row
+- [x] `P4.6.6` Result rows: file name (Inter 600 13px `#1A1A1A`) · `·` separator · folder path (Funnel Sans 11px `#999999`) · excerpt (Geist 12px `#666666`)
+- [x] `P4.6.7` Active/hovered result: `#EBF0FF` bg, file name turns `#0066FF`
+- [x] `P4.6.8` Keyboard: ↑↓ to navigate results, Enter to open file, Tab to preview
+- [x] `P4.6.9` Footer: keyboard shortcut hints (Geist Mono keys in `#F5F5F5`/`#E5E5E5` boxes, Funnel Sans labels `#999999`)
+- [x] `P4.6.10` On result select: close modal, `setActiveFile(path)`, load content
 
 ### 4.7 — AI response cache
-- [ ] `P4.7.1` In `hooks/useAI.ts`: before calling `streamAI`, compute cache key via `crypto.subtle.digest('SHA-256', encoder.encode(path + content + prompt))`
-- [ ] `P4.7.2` Check `getCache(key)`; if hit: replay response as synthetic stream (chunk into 20-char pieces at 20ms intervals via `setInterval`), skip API call
-- [ ] `P4.7.3` If miss: call API, accumulate full response, call `setCache(key, fullResponse)` on completion
+- [x] `P4.7.1` In `hooks/useAI.ts`: before calling `streamAI`, compute cache key via `crypto.subtle.digest('SHA-256', encoder.encode(path + content + prompt))`
+- [x] `P4.7.2` Check `getCache(key)`; if hit: replay response as synthetic stream (chunk into 20-char pieces at 20ms intervals via `setInterval`), skip API call
+- [x] `P4.7.3` If miss: call API, accumulate full response, call `setCache(key, fullResponse)` on completion
 
 **✓ Phase 4 done when:** ⌘K search returns live results across all files, tags appear in toolbar, repeated AI summaries are instant.
 
@@ -496,7 +496,7 @@
 | 1 — Skeleton + editor | 1.1–1.8 | ✅ Done |
 | 2 — OPFS + file tree | 2.1–2.8 | ✅ Done |
 | 3 — AI provider layer + streaming | 3.1–3.12 | ✅ Done |
-| 4 — Search + metadata + cache | 4.1–4.7 | ⬜ Not started |
+| 4 — Search + metadata + cache | 4.1–4.7 | ✅ Done |
 | 5 — Audio + transcription | 5.1–5.4 | ⬜ Not started |
 | 6 — Export | 6.1–6.3 | ⬜ Not started |
 | 7 — Polish + reliability | 7.1–7.6 | ⬜ Not started |

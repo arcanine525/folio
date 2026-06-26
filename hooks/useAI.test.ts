@@ -1,6 +1,8 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { __resetIndexedDbForTests } from "@/__mocks__/indexeddb";
 import { streamAI } from "@/lib/ai";
+import { __resetDbForTests, getCache } from "@/lib/indexeddb";
 import { useSettingsStore, __resetForTests } from "@/store/settingsStore";
 import { useAI } from "@/hooks/useAI";
 import type { AIMessage, ProviderConfig } from "@/types";
@@ -51,6 +53,8 @@ function setActive(p: ProviderConfig | null, key?: string) {
 describe("hooks/useAI", () => {
   beforeEach(() => {
     __resetForTests();
+    __resetIndexedDbForTests();
+    __resetDbForTests();
     vi.mocked(streamAI).mockReset();
   });
 
@@ -138,5 +142,49 @@ describe("hooks/useAI", () => {
     expect(result.current.history).toHaveLength(2);
     act(() => result.current.clearHistory());
     expect(result.current.history).toHaveLength(0);
+  });
+
+  it("caches a response and replays it on a second identical run (no provider call)", async () => {
+    setActive(provider({ mode: "proxy" }));
+    vi.mocked(streamAI).mockReturnValue(tokenStream(["World"]));
+
+    const { result } = renderHook(() => useAI());
+
+    // First run: cache miss → provider streams "World" → stored in cache.
+    await act(async () => {
+      await result.current.run("hi", "sys", "ctx");
+    });
+    expect(result.current.output).toBe("World");
+    expect(streamAI).toHaveBeenCalledTimes(1);
+
+    // Second identical run: cache hit → replayed synthetically, no provider call.
+    await act(async () => {
+      await result.current.run("hi", "sys", "ctx");
+    });
+    expect(result.current.output).toBe("World");
+    expect(streamAI).toHaveBeenCalledTimes(1); // still once
+
+    // The cached entry exists in the store.
+    const cached = await getCache(
+      await (await import("@/lib/cacheKey")).computeCacheKey("ctx", "sys", "hi"),
+    );
+    expect(cached?.response).toBe("World");
+  });
+
+  it("misses the cache and calls the provider when an input differs", async () => {
+    setActive(provider({ mode: "proxy" }));
+    vi.mocked(streamAI).mockReturnValue(tokenStream(["World"]));
+
+    const { result } = renderHook(() => useAI());
+    await act(async () => {
+      await result.current.run("hi", "sys", "ctx"); // primes the cache
+    });
+
+    vi.mocked(streamAI).mockReturnValue(tokenStream(["Other"]));
+    await act(async () => {
+      await result.current.run("changed", "sys", "ctx"); // different user message
+    });
+    expect(result.current.output).toBe("Other");
+    expect(streamAI).toHaveBeenCalledTimes(2);
   });
 });
